@@ -48,6 +48,22 @@ public class Secret {
                     System.out.println(divider);
                     System.out.println("VERY WELL. HERE IS YOUR LIST:");
                     list.read();
+                } else if (input.toLowerCase().startsWith("mark ")
+                        || input.toLowerCase().startsWith("unmark ")) {
+                    String[] commandParts = input.trim().split("\\s+", 2);
+                    if (commandParts.length < 2) {
+                        System.out.println(divider);
+                        System.out.println("BUT, WHICH ITEM IS YOUR CHOICE?");
+                        continue;
+                    }
+                    try {
+                        int itemIndex = Integer.parseInt(commandParts[1]) - 1;
+                        System.out.println(divider);
+                        list.mark(itemIndex, commandParts[0].equals("unmark"));
+                    } catch (NumberFormatException e) {
+                        System.out.println(divider);
+                        System.out.println("BUT, IT IS INVALID.");
+                    }
                 } else {
                     System.out.println(divider);
                     list.add(input);
