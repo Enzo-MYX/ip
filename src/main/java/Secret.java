@@ -64,9 +64,28 @@ public class Secret {
                         System.out.println(divider);
                         System.out.println("BUT, IT IS INVALID.");
                     }
+                } else if (input.toLowerCase().startsWith("todo ")) {
+                    System.out.println(divider);
+                    list.add(new Todo(input.substring(5).trim()));
+                } else if (input.toLowerCase().startsWith("deadline ")) {
+                    System.out.println(divider);
+                    String[] parts = input.substring(9).split("(?i) /by ", 2);
+                    if (parts.length == 2) {
+                        list.add(new Deadline(parts[0].trim(), parts[1].trim()));
+                    } else {
+                        list.add(new Todo(input.substring(9).trim()));
+                    }
+                } else if (input.toLowerCase().startsWith("event ")) {
+                    System.out.println(divider);
+                    String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
+                    if (parts.length == 3) {
+                        list.add(new Event(parts[0].trim(), parts[1].trim(), parts[2].trim()));
+                    } else {
+                        list.add(new Todo(input.substring(6).trim()));
+                    }
                 } else {
                     System.out.println(divider);
-                    list.add(input);
+                    System.out.println("WELL, THAT IS NO LONGER A COMMAND.");
                 }
                 System.out.println(divider);
             }

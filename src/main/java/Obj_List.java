@@ -8,13 +8,13 @@ public class Obj_List {
         l = new Item[i];
     }
 
-    public void add(String s) {
+    public void add(Item item) {
         if (items >= len) {
             System.out.println("BUT, THE STORAGE WAS FULL.");
         } else {
-            l[items] = new Item(s);
+            l[items] = item;
             items++;
-            System.out.println("ORDER PROCESSED: " + s.toUpperCase());
+            System.out.println("ORDER PROCESSED: " + item.toString().toUpperCase());
         }
     }
 
