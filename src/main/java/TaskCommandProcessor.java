@@ -18,15 +18,13 @@ public class TaskCommandProcessor {
      */
     public boolean process(String input) {
         String lowerCaseInput = input.toLowerCase();
-        if (lowerCaseInput.equals("bye")) {
+        if (lowerCaseInput.trim().equals("bye")) {
             return false;
         }
-        if (lowerCaseInput.equals("list")) {
+        if (lowerCaseInput.trim().equals("list")) {
             printList();
         } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
-            if (handleMark(input)) {
-                return true;
-            }
+            handleMark(input);
         } else if (lowerCaseInput.startsWith("todo ")) {
             System.out.println(divider);
             taskList.add(new Todo(input.substring(5).trim()));
@@ -34,6 +32,8 @@ public class TaskCommandProcessor {
             addDeadline(input);
         } else if (lowerCaseInput.startsWith("event ")) {
             addEvent(input);
+        } else if (lowerCaseInput.startsWith("delete ")) {
+            handleDelete(input);
         } else {
             System.out.println(divider);
             System.out.println("WELL, THAT IS NO LONGER A COMMAND.");
@@ -51,12 +51,12 @@ public class TaskCommandProcessor {
     /**
      * @return whether the caller should skip the command's trailing divider
      */
-    private boolean handleMark(String input) {
+    private void handleMark(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
             System.out.println(divider);
-            System.out.println("BUT, WHICH ITEM IS YOUR CHOICE?");
-            return true;
+            System.out.println("BUT, THE OBJECT IS NOT SPECIFIED.");
+            return;
         }
         try {
             int itemIndex = Integer.parseInt(commandParts[1]) - 1;
@@ -66,7 +66,23 @@ public class TaskCommandProcessor {
             System.out.println(divider);
             System.out.println("BUT, IT IS INVALID.");
         }
-        return false;
+    }
+
+    private void handleDelete(String input) {
+        String[] commandParts = input.trim().split("\\s+", 2);
+        if (commandParts.length < 2) {
+            System.out.println(divider);
+            System.out.println("BUT, THE OBJECT IS NOT SPECIFIED.");
+            return;
+        }
+        try {
+            int itemIndex = Integer.parseInt(commandParts[1]) - 1;
+            System.out.println(divider);
+            taskList.delete(itemIndex);
+        } catch (NumberFormatException exception) {
+            System.out.println(divider);
+            System.out.println("BUT, IT IS INVALID.");
+        }
     }
 
     private void addDeadline(String input) {
