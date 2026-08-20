@@ -1,3 +1,6 @@
+/**
+ * Represents a task that can be marked as complete or incomplete.
+ */
 public class Item {
     private final String name;
     private boolean done = false;
@@ -29,5 +32,10 @@ public class Item {
         } else {
             System.out.println("BUT, YOU HAVEN'T DONE IT IN THE FIRST PLACE.");
         }
+    }
+
+    /** Returns the task description used for validation and display. */
+    public String getName() {
+        return name;
     }
 }
