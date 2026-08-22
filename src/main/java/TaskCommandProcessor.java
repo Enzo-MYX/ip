@@ -1,9 +1,34 @@
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Interprets supported task commands and preserves the application's console responses.
  */
 public class TaskCommandProcessor {
     private final Obj_List taskList;
     private final String divider;
+
+    private static final List<DateTimeFormatter> DATETIME_FORMATTERS = Arrays.asList(
+            DateTimeFormatter.ofPattern("yyyy-M-d HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy-M-d HHmm"),
+            DateTimeFormatter.ofPattern("yyyy/M/d HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy/M/d HHmm"),
+            DateTimeFormatter.ofPattern("d-M-yyyy HH:mm"),
+            DateTimeFormatter.ofPattern("d-M-yyyy HHmm"),
+            DateTimeFormatter.ofPattern("d/M/yyyy HH:mm"),
+            DateTimeFormatter.ofPattern("d/M/yyyy HHmm")
+    );
+
+    private static final List<DateTimeFormatter> DATE_FORMATTERS = Arrays.asList(
+            DateTimeFormatter.ofPattern("yyyy-M-d"),
+            DateTimeFormatter.ofPattern("yyyy/M/d"),
+            DateTimeFormatter.ofPattern("d-M-yyyy"),
+            DateTimeFormatter.ofPattern("d/M/yyyy")
+    );
 
     public TaskCommandProcessor(Obj_List taskList, String divider) {
         this.taskList = taskList;
@@ -23,6 +48,8 @@ public class TaskCommandProcessor {
         }
         if (lowerCaseInput.trim().equals("list")) {
             printList();
+        } else if (lowerCaseInput.startsWith("date ")) {
+            handleDate(input);
         } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
             handleMark(input);
         } else if (lowerCaseInput.startsWith("todo ")) {
@@ -40,6 +67,23 @@ public class TaskCommandProcessor {
         }
         System.out.println(divider);
         return true;
+    }
+
+    private void handleDate(String input) {
+        System.out.println(divider);
+        String[] parts = input.split(" ", 2);
+        if (parts.length < 2) {
+            System.out.println("BUT, THERE WAS NOT A DATE TO CHECK.");
+            return;
+        }
+        try {
+            // parseDateTime returns LocalDateTime (time defaults to 00:00 if absent)
+            LocalDateTime dt = parseDateTime(parts[1].trim());
+            LocalDate date = dt.toLocalDate();
+            taskList.listByDate(date);
+        } catch (DateTimeParseException e) {
+            System.out.println("BUT, THE DATE IS INVALID.");
+        }
     }
 
     private void printList() {
@@ -89,8 +133,13 @@ public class TaskCommandProcessor {
         System.out.println(divider);
         String[] parts = input.substring(9).split("(?i) /by ", 2);
         if (parts.length == 2) {
-            taskList.add(new Deadline(parts[0].trim(), parts[1].trim()));
-            return;
+            try {
+                LocalDateTime by = parseDateTime(parts[1].trim());
+                taskList.add(new Deadline(parts[0].trim(), by));
+                return;
+            } catch (DateTimeParseException e) {
+                // fall through to error
+            }
         }
         printMistake();
         taskList.add(new Todo(input.substring(9).trim()));
@@ -100,8 +149,14 @@ public class TaskCommandProcessor {
         System.out.println(divider);
         String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
         if (parts.length == 3) {
-            taskList.add(new Event(parts[0].trim(), parts[1].trim(), parts[2].trim()));
-            return;
+            try {
+                LocalDateTime from = parseDateTime(parts[1].trim());
+                LocalDateTime to = parseDateTime(parts[2].trim());
+                taskList.add(new Event(parts[0].trim(), from, to));
+                return;
+            } catch (DateTimeParseException e) {
+                // fall through
+            }
         }
         printMistake();
         taskList.add(new Todo(input.substring(6).trim()));
@@ -109,5 +164,27 @@ public class TaskCommandProcessor {
 
     private void printMistake() {
         System.out.println("YOU MUST BE\nMISTAKEN.\n\nHERE.");
+    }
+
+    /**
+     * Tries all supported date/time patterns in order and returns the first successful parse.
+     * @throws DateTimeParseException if none of the patterns match
+     */
+    private LocalDateTime parseDateTime(String dateTimeStr) throws DateTimeParseException {
+        for (DateTimeFormatter formatter : DATETIME_FORMATTERS) {
+            try {
+                return LocalDateTime.parse(dateTimeStr, formatter);
+            } catch (DateTimeParseException e) {
+                // try next formatter
+            }
+        }
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                return LocalDate.parse(dateTimeStr, formatter).atStartOfDay();
+            } catch (DateTimeParseException e) {
+                // try next formatter
+            }
+        }
+        throw new DateTimeParseException("Unable to parse: " + dateTimeStr, dateTimeStr, 0);
     }
 }
