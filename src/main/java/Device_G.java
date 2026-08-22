@@ -24,11 +24,15 @@ public class Device_G {
                 """;
         System.out.println(DIVIDER);
         System.out.println(banner.stripTrailing());
+        System.out.println(DIVIDER);
         Secret.run(DIVIDER);
     }
 
     /** Starts the functional console interface after the introduction. */
     public static void boot() {
-        new CommandLoop(System.in, new TaskCommandProcessor(new Obj_List(100), DIVIDER)).run();
+        System.out.println(DIVIDER);
+        Obj_List taskList = new Obj_List(100);
+        taskList.load(); // restore saved tasks, if any
+        new CommandLoop(System.in, new TaskCommandProcessor(taskList, DIVIDER)).run();
     }
 }

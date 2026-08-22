@@ -13,4 +13,9 @@ public class Deadline extends Item {
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by + ")";
     }
+
+    /** Returns the deadline date/time string. */
+    public String getBy() {
+        return by;
+    }
 }

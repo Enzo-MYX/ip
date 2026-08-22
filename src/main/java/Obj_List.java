@@ -1,15 +1,101 @@
+import java.io.*;
 import java.util.ArrayList;
 
 /**
  * Stores the application's tasks in a fixed-size array.
  */
 public class Obj_List {
+    private static final String SAVE_FILE = "./data/PERSIST.txt";
+
     private int itemCount = 0;
     private final ArrayList<Item> items = new ArrayList<>();
     private final int capacity;
 
     public Obj_List(int capacity) {
         this.capacity = capacity;
+    }
+
+    /** Loads tasks from the save file, if it exists. */
+    public void load() {
+        File file = new File(SAVE_FILE);
+        if (!file.exists()) {
+            return; // no previous data
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (itemCount >= capacity) {
+                    Secret.error(true);
+                    read();
+                    break;
+                }
+                String[] parts = line.split("\\|");
+                if (parts.length < 3) continue; // malformed line
+                String type = parts[0].trim();
+                boolean done = parts[1].trim().equals("y");
+                String desc = parts[2].trim();
+                Item item;
+                switch (type) {
+                    case "T":
+                        item = new Todo(desc);
+                        break;
+                    case "D":
+                        if (parts.length < 4) continue;
+                        String by = parts[3].trim();
+                        item = new Deadline(desc, by);
+                        break;
+                    case "E":
+                        if (parts.length < 5) continue;
+                        String from = parts[3].trim();
+                        String to = parts[4].trim();
+                        item = new Event(desc, from, to);
+                        break;
+                    default:
+                        continue; // unknown type
+                }
+                item.setDone(done);
+                items.add(item);
+                itemCount++;
+            }
+        } catch (IOException e) {
+            Secret.error(false);
+        }
+    }
+
+    /** Saves all tasks to the save file. */
+    private void save() {
+        try {
+            File file = new File(SAVE_FILE);
+            file.getParentFile().mkdirs(); // ensure directory exists
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                for (int i = 0; i < itemCount; i++) {
+                    writer.println(itemToFileString(items.get(i)));
+                }
+            }
+        } catch (IOException e) {
+            Secret.error(false);
+        }
+    }
+
+    /** Converts a single item to its file representation. */
+    private String itemToFileString(Item item) {
+        String type;
+        String done = item.isDone() ? "y" : "n";
+        if (item instanceof Todo) {
+            type = "T";
+            return type + " | " + done + " | " + item.getName();
+        } else if (item instanceof Deadline) {
+            type = "D";
+            Deadline d = (Deadline) item;
+            return type + " | " + done + " | " + d.getName() + " | " + d.getBy();
+        } else if (item instanceof Event) {
+            type = "E";
+            Event e = (Event) item;
+            return type + " | " + done + " | " + e.getName() + " | " + e.getFrom() + " | " + e.getTo();
+        } else {
+            // fallback (should not happen)
+            return "? | " + done + " | " + item.getName();
+        }
     }
 
     /** Adds a non-empty task when storage remains available. */
@@ -24,6 +110,7 @@ public class Obj_List {
             items.add(item);
             itemCount++;
             System.out.println("ORDER PROCESSED: " + item.toString().toUpperCase());
+            save(); // persist after addition
         }
     }
 
@@ -48,6 +135,7 @@ public class Obj_List {
             } else {
                 items.get(index).mark();
             }
+            save(); // persist status change
         }
     }
 
@@ -59,6 +147,7 @@ public class Obj_List {
             items.remove(index);
             itemCount--;
             System.out.println("IT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
+            save(); // persist after deletion
         }
     }
 }
