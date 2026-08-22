@@ -38,4 +38,14 @@ public class Item {
     public String getName() {
         return name;
     }
+
+    /** Returns whether the task is marked as done. */
+    public boolean isDone() {
+        return done;
+    }
+
+    /** Sets the done status without printing messages (used during loading). */
+    public void setDone(boolean done) {
+        this.done = done;
+    }
 }

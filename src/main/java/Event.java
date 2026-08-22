@@ -15,4 +15,14 @@ public class Event extends Item {
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
+
+    /** Returns the start date/time string. */
+    public String getFrom() {
+        return from;
+    }
+
+    /** Returns the end date/time string. */
+    public String getTo() {
+        return to;
+    }
 }
