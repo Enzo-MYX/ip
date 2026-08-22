@@ -1,11 +1,18 @@
 import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Stores the application's tasks in a fixed-size array.
  */
 public class Obj_List {
     private static final String SAVE_FILE = "./data/PERSIST.txt";
+    private static final DateTimeFormatter FILE_FORMATTER =
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME;   // e.g., 2026-08-21T18:00
 
     private int itemCount = 0;
     private final ArrayList<Item> items = new ArrayList<>();
@@ -41,13 +48,13 @@ public class Obj_List {
                         break;
                     case "D":
                         if (parts.length < 4) continue;
-                        String by = parts[3].trim();
+                        LocalDateTime by = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
                         item = new Deadline(desc, by);
                         break;
                     case "E":
                         if (parts.length < 5) continue;
-                        String from = parts[3].trim();
-                        String to = parts[4].trim();
+                        LocalDateTime from = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
+                        LocalDateTime to = LocalDateTime.parse(parts[4].trim(), FILE_FORMATTER);
                         item = new Event(desc, from, to);
                         break;
                     default:
@@ -87,11 +94,14 @@ public class Obj_List {
         } else if (item instanceof Deadline) {
             type = "D";
             Deadline d = (Deadline) item;
-            return type + " | " + done + " | " + d.getName() + " | " + d.getBy();
+            return type + " | " + done + " | " + d.getName() + " | "
+                    + d.getBy().format(FILE_FORMATTER);
         } else if (item instanceof Event) {
             type = "E";
             Event e = (Event) item;
-            return type + " | " + done + " | " + e.getName() + " | " + e.getFrom() + " | " + e.getTo();
+            return type + " | " + done + " | " + e.getName() + " | "
+                    + e.getFrom().format(FILE_FORMATTER) + " | "
+                    + e.getTo().format(FILE_FORMATTER);
         } else {
             // fallback (should not happen)
             return "? | " + done + " | " + item.getName();
@@ -148,6 +158,19 @@ public class Obj_List {
             itemCount--;
             System.out.println("IT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
             save(); // persist after deletion
+        }
+    }
+
+    // ---------- New: list tasks on a specific date ----------
+    public void listByDate(LocalDate date) {
+        List<Item> filt = items.stream().filter(item -> item.inRange(date)).toList();
+        if (filt.isEmpty()) {
+            System.out.println("WELL, THERE IS NOTHING OF CONCERN ON THIS SPECIFIC DATE.");
+        } else {
+            System.out.println("WE SIT ON THE PRECIPICE OF THESE EVENTS:\n");
+            for (Item item : filt) {
+                System.out.println(item.toString());
+            }
         }
     }
 }

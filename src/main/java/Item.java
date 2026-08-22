@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+
 /**
  * Represents a task that can be marked as complete or incomplete.
  */
@@ -47,5 +49,9 @@ public class Item {
     /** Sets the done status without printing messages (used during loading). */
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public boolean inRange(LocalDate t) {
+        return false;
     }
 }
