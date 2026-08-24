@@ -1,5 +1,33 @@
 # UI test plan
 
+## Test: Find lists only matching tasks
+
+**Aim:** Verify that find matches task descriptions case-insensitively, renumbers results, and handles missing and blank matches.
+
+### Input
+
+```text
+todo read book
+todo buy groceries
+deadline return BOOK /by 2026-6-6
+find book
+find phone
+find
+bye
+```
+
+### Expected output
+
+```text
+VERY WELL. HERE IS YOUR MATCHING LIST:
+1.[T][ ] read book
+2.[D][ ] return BOOK (by: Jun 06 2026, 12:00 AM)
+---
+BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM.
+---
+BUT, THERE WAS NOTHING TO LOCATE.
+```
+
 ## Test: Valid tasks remain correct after an unknown command
 
 **Aim:** Verify that a rejected command does not alter tasks added before or after it.

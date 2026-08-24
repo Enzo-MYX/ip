@@ -72,6 +72,25 @@ class Obj_ListTest {
     }
 
     @Test
+    void find_matchingMissingAndBlankKeywords_printsExpectedResponses() {
+        Obj_List list = newList(3);
+        list.add(new Todo("read book"));
+        list.add(new Todo("buy groceries"));
+        list.add(new Deadline("return BOOK", LocalDateTime.of(2026, 6, 6, 0, 0)));
+
+        String matchingOutput = captureOutput(() -> list.find("book"));
+        String missingOutput = captureOutput(() -> list.find("phone"));
+        String blankOutput = captureOutput(() -> list.find("   "));
+
+        assertTrue(matchingOutput.contains("VERY WELL. HERE IS YOUR MATCHING LIST:"));
+        assertTrue(matchingOutput.contains("1.[T][ ] read book"));
+        assertTrue(matchingOutput.contains("2.[D][ ] return BOOK"));
+        assertFalse(matchingOutput.contains("buy groceries"));
+        assertTrue(missingOutput.contains("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM."));
+        assertTrue(blankOutput.contains("BUT, THERE WAS NOTHING TO LOCATE."));
+    }
+
+    @Test
     void listByDate_mixedTasks_printsOnlyMatchingDatedTasks() {
         Obj_List list = newList(3);
         list.add(new Todo("undated"));

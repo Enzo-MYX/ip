@@ -127,6 +127,16 @@ class TaskCommandProcessorTest {
                 .contains("WELL, THAT IS NO LONGER A COMMAND."));
     }
 
+    @Test
+    void process_findCommand_routesTrimmedKeyword() {
+        RecordingList list = new RecordingList();
+        TaskCommandProcessor processor = new TaskCommandProcessor(list, DIVIDER);
+
+        processor.process("find   book  ");
+
+        assertEquals("book", list.findKeyword);
+    }
+
     /** Minimal list double that records processor calls without touching persistence. */
     private static class RecordingList extends Obj_List {
         private final ArrayList<Item> addedItems = new ArrayList<>();
@@ -135,6 +145,7 @@ class TaskCommandProcessorTest {
         private boolean reverseMark;
         private int deletedIndex = Integer.MIN_VALUE;
         private LocalDate requestedDate;
+        private String findKeyword;
 
         RecordingList() {
             super(100);
@@ -164,6 +175,11 @@ class TaskCommandProcessorTest {
         @Override
         public void listByDate(LocalDate date) {
             requestedDate = date;
+        }
+
+        @Override
+        public void find(String keyword) {
+            findKeyword = keyword;
         }
     }
 

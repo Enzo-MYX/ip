@@ -51,6 +51,8 @@ public class TaskCommandProcessor {
         }
         if (lowerCaseInput.trim().equals("list")) {
             printList();
+        } else if (lowerCaseInput.trim().equals("find") || lowerCaseInput.startsWith("find ")) {
+            handleFind(input);
         } else if (lowerCaseInput.startsWith("date ")) {
             handleDate(input);
         } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
@@ -93,6 +95,13 @@ public class TaskCommandProcessor {
         System.out.println(divider);
         System.out.println("VERY WELL. HERE IS YOUR LIST:");
         taskList.read();
+    }
+
+    /** Finds tasks whose descriptions contain the supplied keyword. */
+    private void handleFind(String input) {
+        System.out.println(divider);
+        String keyword = input.substring(4).trim();
+        taskList.find(keyword);
     }
 
     /**

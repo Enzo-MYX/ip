@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Locale;
 import SURVEY_PROGRAM.PERSISTENCE.Obj_Storage;
 
 /**
@@ -68,6 +68,27 @@ public class Obj_List {
         }
         for (int i = 0; i < itemCount; i++) {
             System.out.printf("%d.%s%n", i + 1, items.get(i).toString());
+        }
+    }
+
+    /** Prints tasks whose descriptions contain the keyword, ignoring letter case. */
+    public void find(String keyword) {
+        if (keyword.isBlank()) {
+            System.out.println("BUT, THERE WAS NOTHING TO LOCATE.");
+            return;
+        }
+
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        List<Item> matchingItems = items.stream()
+                .filter(item -> item.getName().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .toList();
+        if (matchingItems.isEmpty()) {
+            System.out.println("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM.");
+            return;
+        }
+        System.out.println("VERY WELL. HERE IS YOUR MATCHING LIST:");
+        for (int i = 0; i < matchingItems.size(); i++) {
+            System.out.printf("%d.%s%n", i + 1, matchingItems.get(i));
         }
     }
 
