@@ -1,47 +1,50 @@
-package SURVEY_PROGRAM.OBJECT;
+package survey_program.object;
 
-import java.io.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import SURVEY_PROGRAM.PERSISTENCE.Obj_Storage;
+
+import survey_program.persistence.TaskStorage;
 
 /**
  * Stores the application's tasks in a fixed-size array.
  */
-public class Obj_List {
+public class TaskList {
     private int itemCount = 0;
     private final ArrayList<Item> items = new ArrayList<>();
     private final int capacity;
     private final Path saveFile;
 
-    public Obj_List(int capacity) {
+    /**
+     * Creates a task list with the supplied maximum capacity.
+     *
+     * @param capacity Maximum number of tasks that can be stored.
+     */
+    public TaskList(int capacity) {
         this(capacity, Path.of("data", "PERSIST.txt"));
     }
 
     /** Creates a task list backed by a specific save file, allowing isolated tests. */
-    Obj_List(int capacity, Path saveFile) {
+    TaskList(int capacity, Path saveFile) {
         this.capacity = capacity;
         this.saveFile = saveFile;
     }
-    
+
+    /** Returns the mutable list used by the persistence layer. */
     public ArrayList<Item> getList() {
         return items;
     }
 
     /** Loads tasks from the save file, if it exists. */
     public void load() {
-        Obj_Storage.load(this, capacity, saveFile);
+        TaskStorage.load(this, capacity, saveFile);
         itemCount = items.size();
     }
 
     /** Saves all tasks to the save file. */
     private void save() {
-        Obj_Storage.save(this, saveFile);
+        TaskStorage.save(this, saveFile);
     }
 
     /** Adds a non-empty task when storage remains available. */
@@ -56,7 +59,7 @@ public class Obj_List {
             items.add(item);
             itemCount++;
             System.out.println("ORDER PROCESSED: " + item.toString().toUpperCase());
-            save(); // persist after addition
+            save();
         }
     }
 
@@ -72,19 +75,20 @@ public class Obj_List {
     }
 
     /** Marks or unmarks the task at the supplied zero-based index. */
-    public void mark(int index, boolean reverse) {
+    public void mark(int index, boolean isReverse) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
         } else {
-            if (reverse) {
+            if (isReverse) {
                 items.get(index).undo();
             } else {
                 items.get(index).mark();
             }
-            save(); // persist status change
+            save();
         }
     }
 
+    /** Deletes the task at the supplied zero-based index. */
     public void delete(int index) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
@@ -93,18 +97,18 @@ public class Obj_List {
             items.remove(index);
             itemCount--;
             System.out.println("IT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
-            save(); // persist after deletion
+            save();
         }
     }
 
-    // ---------- New: list tasks on a specific date ----------
+    /** Lists tasks that occur on the supplied date. */
     public void listByDate(LocalDate date) {
-        List<Item> filt = items.stream().filter(item -> item.inRange(date)).toList();
-        if (filt.isEmpty()) {
+        List<Item> matchingItems = items.stream().filter(item -> item.inRange(date)).toList();
+        if (matchingItems.isEmpty()) {
             System.out.println("WELL, THERE IS NOTHING OF CONCERN ON THIS SPECIFIC DATE.");
         } else {
             System.out.println("WE SIT ON THE PRECIPICE OF THESE EVENTS:\n");
-            for (Item item : filt) {
+            for (Item item : matchingItems) {
                 System.out.println(item.toString());
             }
         }

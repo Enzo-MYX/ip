@@ -1,4 +1,4 @@
-package SURVEY_PROGRAM.OBJECT;
+package survey_program.object;
 
 import java.time.LocalDate;
 
@@ -7,30 +7,33 @@ import java.time.LocalDate;
  */
 public class Item {
     private final String name;
-    private boolean done = false;
+    private boolean isDone = false;
 
+    /** Creates an incomplete task with the supplied description. */
     public Item(String name) {
         this.name = name;
     }
 
     @Override
     public String toString() {
-        return String.format("[%s] %s", done ? "X" : " ", name);
+        return String.format("[%s] %s", isDone ? "X" : " ", name);
     }
 
+    /** Marks this task as complete and reports the result. */
     public void mark() {
-        if (done) {
+        if (isDone) {
             System.out.println("BUT, IT WAS ALREADY DONE.");
         } else {
-            done = true;
+            isDone = true;
             System.out.println("THEN, IT IS DONE.");
             System.out.println(this);
         }
     }
 
+    /** Marks this task as incomplete and reports the result. */
     public void undo() {
-        if (done) {
-            done = false;
+        if (isDone) {
+            isDone = false;
             System.out.println("THEN, IT WAS AS IF IT WAS NEVER DONE.");
             System.out.println(this);
         } else {
@@ -45,15 +48,16 @@ public class Item {
 
     /** Returns whether the task is marked as done. */
     public boolean isDone() {
-        return done;
+        return isDone;
     }
 
     /** Sets the done status without printing messages (used during loading). */
-    public void setDone(boolean done) {
-        this.done = done;
+    public void setDone(boolean isDone) {
+        this.isDone = isDone;
     }
 
-    public boolean inRange(LocalDate t) {
+    /** Returns whether this task occurs on the supplied date. */
+    public boolean inRange(LocalDate date) {
         return false;
     }
 }

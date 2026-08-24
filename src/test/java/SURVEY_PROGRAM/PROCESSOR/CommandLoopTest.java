@@ -1,13 +1,15 @@
-package SURVEY_PROGRAM.PROCESSOR;
+package survey_program.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import SURVEY_PROGRAM.OBJECT.Obj_List;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
+
+import survey_program.object.TaskList;
 
 /** Tests that the command loop reads commands in order and stops at exit. */
 class CommandLoopTest {
@@ -26,7 +28,7 @@ class CommandLoopTest {
         private final ArrayList<String> inputs = new ArrayList<>();
 
         RecordingProcessor() {
-            super(new Obj_List(0), "---");
+            super(new TaskList(0), "---");
         }
 
         @Override

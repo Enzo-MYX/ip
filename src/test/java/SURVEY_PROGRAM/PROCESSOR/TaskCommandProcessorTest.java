@@ -1,15 +1,10 @@
-package SURVEY_PROGRAM.PROCESSOR;
+package survey_program.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import SURVEY_PROGRAM.OBJECT.Deadline;
-import SURVEY_PROGRAM.OBJECT.Event;
-import SURVEY_PROGRAM.OBJECT.Item;
-import SURVEY_PROGRAM.OBJECT.Obj_List;
-import SURVEY_PROGRAM.OBJECT.Todo;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +12,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
+
+import survey_program.object.Deadline;
+import survey_program.object.Event;
+import survey_program.object.Item;
+import survey_program.object.TaskList;
+import survey_program.object.Todo;
 
 /** Tests command recognition, parsing, fallback behavior, and routing. */
 class TaskCommandProcessorTest {
@@ -106,10 +108,10 @@ class TaskCommandProcessorTest {
 
         processor.process("mark 2");
         assertEquals(1, list.markedIndex);
-        assertFalse(list.reverseMark);
+        assertFalse(list.isReverseMark);
         processor.process("unmark 1");
         assertEquals(0, list.markedIndex);
-        assertTrue(list.reverseMark);
+        assertTrue(list.isReverseMark);
         processor.process("delete 3");
         assertEquals(2, list.deletedIndex);
         assertTrue(captureOutput(() -> processor.process("delete no"))
@@ -122,17 +124,17 @@ class TaskCommandProcessorTest {
         TaskCommandProcessor processor = new TaskCommandProcessor(list, DIVIDER);
 
         assertTrue(captureOutput(() -> processor.process("list")).contains("VERY WELL. HERE IS YOUR LIST:"));
-        assertTrue(list.readCalled);
+        assertTrue(list.isReadCalled);
         assertTrue(captureOutput(() -> processor.process("unknown"))
                 .contains("WELL, THAT IS NO LONGER A COMMAND."));
     }
 
     /** Minimal list double that records processor calls without touching persistence. */
-    private static class RecordingList extends Obj_List {
+    private static class RecordingList extends TaskList {
         private final ArrayList<Item> addedItems = new ArrayList<>();
-        private boolean readCalled;
+        private boolean isReadCalled;
         private int markedIndex = Integer.MIN_VALUE;
-        private boolean reverseMark;
+        private boolean isReverseMark;
         private int deletedIndex = Integer.MIN_VALUE;
         private LocalDate requestedDate;
 
@@ -147,13 +149,13 @@ class TaskCommandProcessorTest {
 
         @Override
         public void read() {
-            readCalled = true;
+            isReadCalled = true;
         }
 
         @Override
-        public void mark(int index, boolean reverse) {
+        public void mark(int index, boolean isReverse) {
             markedIndex = index;
-            reverseMark = reverse;
+            isReverseMark = isReverse;
         }
 
         @Override

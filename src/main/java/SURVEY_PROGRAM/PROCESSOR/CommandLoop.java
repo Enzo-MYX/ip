@@ -1,4 +1,4 @@
-package SURVEY_PROGRAM.PROCESSOR;
+package survey_program.processor;
 
 import java.io.InputStream;
 import java.util.Scanner;
@@ -10,6 +10,7 @@ public class CommandLoop {
     private final InputStream inputStream;
     private final TaskCommandProcessor commandProcessor;
 
+    /** Creates a command loop using the supplied input and processor. */
     public CommandLoop(InputStream inputStream, TaskCommandProcessor commandProcessor) {
         this.inputStream = inputStream;
         this.commandProcessor = commandProcessor;

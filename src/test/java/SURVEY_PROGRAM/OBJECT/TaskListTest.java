@@ -1,4 +1,4 @@
-package SURVEY_PROGRAM.OBJECT;
+package survey_program.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,13 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /** Tests task-list validation, mutation, filtering, and persistence integration. */
-class Obj_ListTest {
+class TaskListTest {
     @TempDir
     Path temporaryDirectory;
 
     @Test
     void add_emptyAndOverCapacity_rejectsInvalidItems() {
-        Obj_List list = newList(1);
+        TaskList list = newList(1);
 
         String emptyOutput = captureOutput(() -> list.add(new Todo("   ")));
         list.add(new Todo("first"));
@@ -34,7 +34,7 @@ class Obj_ListTest {
 
     @Test
     void mark_validAndInvalidIndexes_updatesOnlyValidItem() {
-        Obj_List list = newList(2);
+        TaskList list = newList(2);
         list.add(new Todo("first"));
 
         list.mark(0, false);
@@ -46,7 +46,7 @@ class Obj_ListTest {
 
     @Test
     void delete_validAndInvalidIndexes_removesOnlyValidItem() {
-        Obj_List list = newList(2);
+        TaskList list = newList(2);
         list.add(new Todo("first"));
         list.add(new Todo("second"));
 
@@ -60,7 +60,7 @@ class Obj_ListTest {
 
     @Test
     void read_emptyAndPopulatedList_printsExpectedNumbering() {
-        Obj_List list = newList(2);
+        TaskList list = newList(2);
         assertTrue(captureOutput(list::read).contains("BUT, THERE WAS NOTHING TO READ."));
 
         list.add(new Todo("first"));
@@ -73,7 +73,7 @@ class Obj_ListTest {
 
     @Test
     void listByDate_mixedTasks_printsOnlyMatchingDatedTasks() {
-        Obj_List list = newList(3);
+        TaskList list = newList(3);
         list.add(new Todo("undated"));
         list.add(new Deadline("due", LocalDateTime.of(2026, 8, 24, 12, 0)));
         list.add(new Event("trip", LocalDateTime.of(2026, 8, 23, 8, 0),
@@ -91,14 +91,14 @@ class Obj_ListTest {
     @Test
     void load_afterMutations_restoresAllTypesAndCompletionState() {
         Path saveFile = temporaryDirectory.resolve("nested/tasks.txt");
-        Obj_List original = new Obj_List(5, saveFile);
+        TaskList original = new TaskList(5, saveFile);
         original.add(new Todo("todo"));
         original.add(new Deadline("deadline", LocalDateTime.of(2026, 8, 24, 17, 30)));
         original.add(new Event("event", LocalDateTime.of(2026, 8, 24, 9, 0),
                 LocalDateTime.of(2026, 8, 25, 10, 0)));
         original.mark(1, false);
 
-        Obj_List restored = new Obj_List(5, saveFile);
+        TaskList restored = new TaskList(5, saveFile);
         restored.load();
 
         assertEquals(3, restored.getList().size());
@@ -108,8 +108,8 @@ class Obj_ListTest {
         assertTrue(restored.getList().get(1).isDone());
     }
 
-    private Obj_List newList(int capacity) {
-        return new Obj_List(capacity, temporaryDirectory.resolve("tasks.txt"));
+    private TaskList newList(int capacity) {
+        return new TaskList(capacity, temporaryDirectory.resolve("tasks.txt"));
     }
 
     private static String captureOutput(Runnable action) {

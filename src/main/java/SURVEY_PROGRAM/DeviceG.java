@@ -1,21 +1,19 @@
-/**
- * Starts the application and owns its presentation-only introduction.
- */
-package SURVEY_PROGRAM;
+package survey_program;
 
-import SURVEY_PROGRAM.INTERFACE.Secret;
-import SURVEY_PROGRAM.OBJECT.Obj_List;
-import SURVEY_PROGRAM.PROCESSOR.CommandLoop;
-import SURVEY_PROGRAM.PROCESSOR.TaskCommandProcessor;
+import survey_program.ui.Secret;
+import survey_program.object.TaskList;
+import survey_program.processor.CommandLoop;
+import survey_program.processor.TaskCommandProcessor;
 
-public class Device_G {
+/** Starts the application and owns its presentation-only introduction. */
+public class DeviceG {
     private static final String DIVIDER = "____________________________________________________________________________________";
 
     /**
      * Displays the introduction before handing control to the command interface.
      *
-     * @param args unused command-line arguments
-     * @throws InterruptedException if the introductory pauses are interrupted
+     * @param args Unused command-line arguments.
+     * @throws InterruptedException If the introductory pauses are interrupted.
      */
     public static void main(String[] args) throws InterruptedException {
         String banner = """
@@ -36,7 +34,7 @@ public class Device_G {
     /** Starts the functional console interface after the introduction. */
     public static void boot() {
         System.out.println(DIVIDER);
-        Obj_List taskList = new Obj_List(100);
+        TaskList taskList = new TaskList(100);
         taskList.load(); // restore saved tasks, if any
         new CommandLoop(System.in, new TaskCommandProcessor(taskList, DIVIDER)).run();
     }
