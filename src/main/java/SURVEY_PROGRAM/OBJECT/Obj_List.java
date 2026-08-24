@@ -19,16 +19,31 @@ public class Obj_List {
     private final int capacity;
     private final Path saveFile;
 
+    /**
+     * Creates a task list that uses the default save file.
+     *
+     * @param capacity maximum number of tasks the list can contain
+     */
     public Obj_List(int capacity) {
         this(capacity, Path.of("data", "PERSIST.txt"));
     }
 
-    /** Creates a task list backed by a specific save file, allowing isolated tests. */
+    /**
+     * Creates a task list backed by a specific save file.
+     *
+     * @param capacity maximum number of tasks the list can contain
+     * @param saveFile file used to load and save tasks
+     */
     Obj_List(int capacity, Path saveFile) {
         this.capacity = capacity;
         this.saveFile = saveFile;
     }
     
+    /**
+     * Returns the mutable collection used to store tasks.
+     *
+     * @return stored tasks
+     */
     public ArrayList<Item> getList() {
         return items;
     }
@@ -39,12 +54,16 @@ public class Obj_List {
         itemCount = items.size();
     }
 
-    /** Saves all tasks to the save file. */
+    /** Saves all current tasks and completion states to the configured file. */
     private void save() {
         Obj_Storage.save(this, saveFile);
     }
 
-    /** Adds a non-empty task when storage remains available. */
+    /**
+     * Adds and saves a non-empty task when storage remains available.
+     *
+     * @param item task to add
+     */
     public void add(Item item) {
         if (itemCount >= capacity) {
             System.out.println("BUT, THERE IS NO MORE MEMORY TO ALLOCATE.");
@@ -71,7 +90,12 @@ public class Obj_List {
         }
     }
 
-    /** Marks or unmarks the task at the supplied zero-based index. */
+    /**
+     * Marks or unmarks the task at the supplied zero-based index.
+     *
+     * @param index zero-based index of the task
+     * @param reverse {@code true} to unmark the task, or {@code false} to mark it
+     */
     public void mark(int index, boolean reverse) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
@@ -85,6 +109,11 @@ public class Obj_List {
         }
     }
 
+    /**
+     * Removes and saves the task at a zero-based index.
+     *
+     * @param index zero-based index of the task to remove
+     */
     public void delete(int index) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
@@ -97,7 +126,11 @@ public class Obj_List {
         }
     }
 
-    // ---------- New: list tasks on a specific date ----------
+    /**
+     * Prints deadlines and events that occur on a specified date.
+     *
+     * @param date date used to filter tasks
+     */
     public void listByDate(LocalDate date) {
         List<Item> filt = items.stream().filter(item -> item.inRange(date)).toList();
         if (filt.isEmpty()) {

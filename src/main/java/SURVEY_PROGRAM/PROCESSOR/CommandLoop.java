@@ -10,6 +10,12 @@ public class CommandLoop {
     private final InputStream inputStream;
     private final TaskCommandProcessor commandProcessor;
 
+    /**
+     * Creates a command loop that reads from the supplied stream.
+     *
+     * @param inputStream source of user commands
+     * @param commandProcessor processor that handles each command
+     */
     public CommandLoop(InputStream inputStream, TaskCommandProcessor commandProcessor) {
         this.inputStream = inputStream;
         this.commandProcessor = commandProcessor;

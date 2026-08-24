@@ -1,6 +1,3 @@
-/**
- * Starts the application and owns its presentation-only introduction.
- */
 package SURVEY_PROGRAM;
 
 import SURVEY_PROGRAM.INTERFACE.Secret;
@@ -8,8 +5,15 @@ import SURVEY_PROGRAM.OBJECT.Obj_List;
 import SURVEY_PROGRAM.PROCESSOR.CommandLoop;
 import SURVEY_PROGRAM.PROCESSOR.TaskCommandProcessor;
 
+/**
+ * Starts the application and owns its presentation-only introduction.
+ */
 public class Device_G {
     private static final String DIVIDER = "____________________________________________________________________________________";
+
+    private Device_G() {
+        // This class contains only application entry points.
+    }
 
     /**
      * Displays the introduction before handing control to the command interface.

@@ -12,21 +12,42 @@ public class Deadline extends Item {
     private final LocalDateTime by;
     private static final DateTimeFormatter OUTPUT_FORMATTER = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a", Locale.ENGLISH);
 
+    /**
+     * Creates a task that must be completed by a specified date-time.
+     *
+     * @param description deadline description
+     * @param by due date-time
+     */
     public Deadline(String description, LocalDateTime by) {
         super(description);
         this.by = by;
     }
 
+    /**
+     * Returns the deadline's display form, including its due date and completion state.
+     *
+     * @return formatted deadline
+     */
     @Override
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by.format(OUTPUT_FORMATTER) + ")";
     }
 
-    /** Returns the deadline date/time string. */
+    /**
+     * Returns the due date-time.
+     *
+     * @return due date-time
+     */
     public LocalDateTime getBy() {
         return by;
     }
 
+    /**
+     * Checks whether the deadline falls on a specified date.
+     *
+     * @param t date to check
+     * @return {@code true} when the deadline is due on the date
+     */
     @Override
     public boolean inRange(LocalDate t) {
         return by.toLocalDate().equals(t);

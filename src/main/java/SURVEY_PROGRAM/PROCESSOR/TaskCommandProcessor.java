@@ -33,6 +33,12 @@ public class TaskCommandProcessor {
             DateTimeFormatter.ofPattern("d/M/yyyy")
     );
 
+    /**
+     * Creates a processor that applies commands to a task list.
+     *
+     * @param taskList task list to query and modify
+     * @param divider line printed between console responses
+     */
     public TaskCommandProcessor(Obj_List taskList, String divider) {
         this.taskList = taskList;
         this.divider = divider;
@@ -72,6 +78,11 @@ public class TaskCommandProcessor {
         return true;
     }
 
+    /**
+     * Parses a date command and prints tasks occurring on that date.
+     *
+     * @param input complete date command entered by the user
+     */
     private void handleDate(String input) {
         System.out.println(divider);
         String[] parts = input.split(" ", 2);
@@ -89,6 +100,7 @@ public class TaskCommandProcessor {
         }
     }
 
+    /** Prints the heading and current task list. */
     private void printList() {
         System.out.println(divider);
         System.out.println("VERY WELL. HERE IS YOUR LIST:");
@@ -96,7 +108,9 @@ public class TaskCommandProcessor {
     }
 
     /**
-     * @return whether the caller should skip the command's trailing divider
+     * Parses a one-based task index and marks or unmarks the selected task.
+     *
+     * @param input complete mark or unmark command entered by the user
      */
     private void handleMark(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
@@ -115,6 +129,11 @@ public class TaskCommandProcessor {
         }
     }
 
+    /**
+     * Parses a one-based task index and deletes the selected task.
+     *
+     * @param input complete delete command entered by the user
+     */
     private void handleDelete(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
@@ -132,6 +151,11 @@ public class TaskCommandProcessor {
         }
     }
 
+    /**
+     * Parses and adds a deadline, falling back to a todo when its date is invalid.
+     *
+     * @param input complete deadline command entered by the user
+     */
     private void addDeadline(String input) {
         System.out.println(divider);
         String[] parts = input.substring(9).split("(?i) /by ", 2);
@@ -148,6 +172,11 @@ public class TaskCommandProcessor {
         taskList.add(new Todo(input.substring(9).trim()));
     }
 
+    /**
+     * Parses and adds an event, falling back to a todo when its range is invalid.
+     *
+     * @param input complete event command entered by the user
+     */
     private void addEvent(String input) {
         System.out.println(divider);
         String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
@@ -165,12 +194,16 @@ public class TaskCommandProcessor {
         taskList.add(new Todo(input.substring(6).trim()));
     }
 
+    /** Prints the message used when a dated task cannot be parsed. */
     private void printMistake() {
         System.out.println("YOU MUST BE\nMISTAKEN.\n\nHERE.");
     }
 
     /**
      * Tries all supported date/time patterns in order and returns the first successful parse.
+     *
+     * @param dateTimeStr date or date-time text to parse
+     * @return parsed date-time, with midnight used when no time is supplied
      * @throws DateTimeParseException if none of the patterns match
      */
     private LocalDateTime parseDateTime(String dateTimeStr) throws DateTimeParseException {

@@ -2,7 +2,20 @@ package SURVEY_PROGRAM.INTERFACE;
 
 import SURVEY_PROGRAM.Device_G;
 
+/**
+ * Displays the application's timed introductory sequence and persistence warnings.
+ */
 public class Secret {
+    private Secret() {
+        // This class contains only presentation utilities.
+    }
+
+    /**
+     * Plays the introduction, starts the command interface, and displays the farewell.
+     *
+     * @param divider line used to separate sections of console output
+     * @throws InterruptedException if a timed pause is interrupted
+     */
     public static void run(String divider) throws InterruptedException {
         Thread.sleep(3000);
         System.out.println("\nGREETINGS.\n");
@@ -31,6 +44,11 @@ public class Secret {
         System.out.println("\n(*  Well, there was not a man here.)");
     }
 
+    /**
+     * Displays a warning after stored data cannot be fully read or written.
+     *
+     * @param saved whether part of the stored data was successfully recovered
+     */
     public static void error(boolean saved) {
         try {
             System.out.println("CURIOUS.\n");

@@ -8,16 +8,35 @@ import java.util.ArrayList;
 import SURVEY_PROGRAM.INTERFACE.Secret;
 import SURVEY_PROGRAM.OBJECT.*;
 
+/**
+ * Serializes task lists to disk and reconstructs them from saved records.
+ */
 public class Obj_Storage {
     private static final Path SAVE_FILE = Path.of("data", "PERSIST.txt");
     private static final DateTimeFormatter FILE_FORMATTER =
             DateTimeFormatter.ISO_LOCAL_DATE_TIME;   // e.g., 2026-08-21T18:00
 
+    private Obj_Storage() {
+        // This class contains only persistence utilities.
+    }
+
+    /**
+     * Loads tasks from the application's default save file.
+     *
+     * @param lst task list that receives loaded items
+     * @param capacity maximum number of items to load
+     */
     public static void load(Obj_List lst, int capacity) {
         load(lst, capacity, SAVE_FILE);
     }
 
-    /** Loads tasks from the supplied file path, primarily to support isolated tests. */
+    /**
+     * Loads tasks from a specified file, skipping malformed or unknown records.
+     *
+     * @param lst task list that receives loaded items
+     * @param capacity maximum number of items to load
+     * @param saveFile file containing serialized task records
+     */
     public static void load(Obj_List lst, int capacity, Path saveFile) {
         ArrayList<Item> items = lst.getList();
         int itemCount = 0;
@@ -66,7 +85,12 @@ public class Obj_Storage {
         }
     }
 
-    /** Converts a single item to its file representation. */
+    /**
+     * Converts an item into the pipe-delimited representation used in the save file.
+     *
+     * @param item task to serialize
+     * @return serialized task record
+     */
     private static String itemToFileString(Item item) {
         String type;
         String done = item.isDone() ? "y" : "n";
@@ -90,11 +114,21 @@ public class Obj_Storage {
         }
     }
 
+    /**
+     * Writes all tasks to the application's default save file.
+     *
+     * @param lst task list to save
+     */
     public static void save(Obj_List lst) {
         save(lst, SAVE_FILE);
     }
 
-    /** Saves tasks to the supplied file path, primarily to support isolated tests. */
+    /**
+     * Writes all tasks to a specified file, creating parent directories when needed.
+     *
+     * @param lst task list to save
+     * @param saveFile destination for serialized task records
+     */
     public static void save(Obj_List lst, Path saveFile) {
         ArrayList<Item> items = lst.getList();
         int itemCount = items.size();
