@@ -4,6 +4,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,9 +17,16 @@ public class Obj_List {
     private int itemCount = 0;
     private final ArrayList<Item> items = new ArrayList<>();
     private final int capacity;
+    private final Path saveFile;
 
     public Obj_List(int capacity) {
+        this(capacity, Path.of("data", "PERSIST.txt"));
+    }
+
+    /** Creates a task list backed by a specific save file, allowing isolated tests. */
+    Obj_List(int capacity, Path saveFile) {
         this.capacity = capacity;
+        this.saveFile = saveFile;
     }
     
     public ArrayList<Item> getList() {
@@ -27,13 +35,13 @@ public class Obj_List {
 
     /** Loads tasks from the save file, if it exists. */
     public void load() {
-        Obj_Storage.load(this, capacity);
+        Obj_Storage.load(this, capacity, saveFile);
         itemCount = items.size();
     }
 
     /** Saves all tasks to the save file. */
     private void save() {
-        Obj_Storage.save(this);
+        Obj_Storage.save(this, saveFile);
     }
 
     /** Adds a non-empty task when storage remains available. */

@@ -10,9 +10,9 @@
 todo borrow book
 abracadabra
 list
-deadline submit report /by Sunday 5pm
+deadline submit report /by 2026-8-24 17:30
 list
-event project meeting /from Mon 2pm /to 4pm
+event project meeting /from 2026-8-25 14:00 /to 2026-8-25 16:00
 list
 bye
 ```
@@ -26,16 +26,16 @@ WELL, THAT IS NO LONGER A COMMAND.
 ---
 1.[T][ ] borrow book
 ---
-ORDER PROCESSED: [D][ ] SUBMIT REPORT (BY: SUNDAY 5PM)
+ORDER PROCESSED: [D][ ] SUBMIT REPORT (BY: AUG 24 2026, 5:30 PM)
 ---
 1.[T][ ] borrow book
-2.[D][ ] submit report (by: Sunday 5pm)
+2.[D][ ] submit report (by: Aug 24 2026, 5:30 PM)
 ---
-ORDER PROCESSED: [E][ ] PROJECT MEETING (FROM: MON 2PM TO: 4PM)
+ORDER PROCESSED: [E][ ] PROJECT MEETING (FROM: AUG 25 2026, 2:00 PM TO: AUG 25 2026, 4:00 PM)
 ---
 1.[T][ ] borrow book
-2.[D][ ] submit report (by: Sunday 5pm)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][ ] submit report (by: Aug 24 2026, 5:30 PM)
+3.[E][ ] project meeting (from: Aug 25 2026, 2:00 PM to: Aug 25 2026, 4:00 PM)
 ```
 
 ## Test: Invalid task details preserve the documented fallback state
@@ -131,7 +131,7 @@ bye
 ### Expected output
 
 ```text
-BUT, WHICH ITEM IS YOUR CHOICE?
+BUT, THE OBJECT IS NOT SPECIFIED.
 ---
 BUT, THERE WAS NOTHING TO READ.
 ```

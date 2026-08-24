@@ -35,23 +35,30 @@ try {
 /** Starts the application at its functional entry point for UI testing. */
 public class BootLauncher {
     public static void main(String[] args) {
-        Device_G.boot();
+        SURVEY_PROGRAM.Device_G.boot();
     }
 }
 "@ | Set-Content -LiteralPath $launcherFile
 
-    $sourceFiles = Get-ChildItem -Path (Join-Path $repositoryRoot "src/main/java") -Filter *.java | Select-Object -ExpandProperty FullName
+    $sourceFiles = Get-ChildItem -Path (Join-Path $repositoryRoot "src/main/java") -Filter *.java -Recurse |
+            Select-Object -ExpandProperty FullName
     & javac -d $classesDirectory $sourceFiles $launcherFile
     if ($LASTEXITCODE -ne 0) {
         throw "Compilation failed."
     }
 
+    # Run from the temporary directory so persistence created by a test cannot
+    # read or overwrite the user's real data/PERSIST.txt file.
+    Set-Location -LiteralPath $workDirectory
     $transcript = [System.Collections.Generic.List[string]]::new()
     foreach ($case in $caseMatches) {
         $name = $case.Groups['name'].Value.Trim()
         $input = $case.Groups['input'].Value.TrimEnd("`r", "`n")
         $expected = $case.Groups['expected'].Value.TrimEnd("`r", "`n").Replace("`r`n", "`n")
-        $inputFile = Join-Path $workDirectory "input.txt"
+        $caseDirectory = Join-Path $workDirectory ("case-" + $transcript.Count)
+        New-Item -ItemType Directory -Force -Path $caseDirectory | Out-Null
+        Set-Location -LiteralPath $caseDirectory
+        $inputFile = Join-Path $caseDirectory "input.txt"
         [System.IO.File]::WriteAllText($inputFile, $input + [Environment]::NewLine)
         $actual = (Get-Content -LiteralPath $inputFile -Raw | & java -cp $classesDirectory BootLauncher 2>&1 | Out-String).TrimEnd("`r", "`n").Replace("`r`n", "`n")
 
@@ -93,6 +100,7 @@ public class BootLauncher {
     $transcript -join [Environment]::NewLine | Write-Output
     Write-Output "All $($caseMatches.Count) UI test(s) passed. Transcript: $sessionLog"
 } finally {
+    Set-Location -LiteralPath $repositoryRoot
     if (Test-Path -LiteralPath $workDirectory) {
         Remove-Item -LiteralPath $workDirectory -Recurse -Force
     }

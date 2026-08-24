@@ -3,19 +3,25 @@ package SURVEY_PROGRAM.PERSISTENCE;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import SURVEY_PROGRAM.INTERFACE.Secret;
 import SURVEY_PROGRAM.OBJECT.*;
 
 public class Obj_Storage {
-    private static final String SAVE_FILE = "./data/PERSIST.txt";
+    private static final Path SAVE_FILE = Path.of("data", "PERSIST.txt");
     private static final DateTimeFormatter FILE_FORMATTER =
             DateTimeFormatter.ISO_LOCAL_DATE_TIME;   // e.g., 2026-08-21T18:00
 
     public static void load(Obj_List lst, int capacity) {
+        load(lst, capacity, SAVE_FILE);
+    }
+
+    /** Loads tasks from the supplied file path, primarily to support isolated tests. */
+    public static void load(Obj_List lst, int capacity, Path saveFile) {
         ArrayList<Item> items = lst.getList();
         int itemCount = 0;
-        File file = new File(SAVE_FILE);
+        File file = saveFile.toFile();
         if (!file.exists()) {
             return; // no previous data
         }
@@ -85,11 +91,19 @@ public class Obj_Storage {
     }
 
     public static void save(Obj_List lst) {
+        save(lst, SAVE_FILE);
+    }
+
+    /** Saves tasks to the supplied file path, primarily to support isolated tests. */
+    public static void save(Obj_List lst, Path saveFile) {
         ArrayList<Item> items = lst.getList();
         int itemCount = items.size();
         try {
-            File file = new File(SAVE_FILE);
-            file.getParentFile().mkdirs(); // ensure directory exists
+            File file = saveFile.toFile();
+            File parent = file.getParentFile();
+            if (parent != null) {
+                parent.mkdirs(); // ensure directory exists
+            }
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 for (int i = 0; i < itemCount; i++) {
                     writer.println(itemToFileString(items.get(i)));
