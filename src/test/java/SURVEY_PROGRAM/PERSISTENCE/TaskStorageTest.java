@@ -1,28 +1,30 @@
-package SURVEY_PROGRAM.PERSISTENCE;
+package survey_program.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import SURVEY_PROGRAM.OBJECT.Deadline;
-import SURVEY_PROGRAM.OBJECT.Obj_List;
-import SURVEY_PROGRAM.OBJECT.Todo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import survey_program.object.Deadline;
+import survey_program.object.TaskList;
+import survey_program.object.Todo;
+
 /** Tests persistence parsing independently from the application's real save file. */
-class Obj_StorageTest {
+class TaskStorageTest {
     @TempDir
     Path temporaryDirectory;
 
     @Test
     void load_missingFile_leavesListEmpty() {
-        Obj_List list = new Obj_List(10);
+        TaskList list = new TaskList(10);
 
-        Obj_Storage.load(list, 10, temporaryDirectory.resolve("missing.txt"));
+        TaskStorage.load(list, 10, temporaryDirectory.resolve("missing.txt"));
 
         assertEquals(0, list.getList().size());
     }
@@ -36,9 +38,9 @@ class Obj_StorageTest {
                 "D | n | missing date",
                 "T | y | restored todo",
                 "D | n | restored deadline | 2026-08-24T17:30:00"));
-        Obj_List list = new Obj_List(10);
+        TaskList list = new TaskList(10);
 
-        Obj_Storage.load(list, 10, file);
+        TaskStorage.load(list, 10, file);
 
         assertEquals(2, list.getList().size());
         assertInstanceOf(Todo.class, list.getList().get(0));
@@ -51,7 +53,7 @@ class Obj_StorageTest {
     void save_emptyList_createsEmptyFileAndParentDirectories() throws IOException {
         Path file = temporaryDirectory.resolve("deep/data/tasks.txt");
 
-        Obj_Storage.save(new Obj_List(10), file);
+        TaskStorage.save(new TaskList(10), file);
 
         assertEquals("", Files.readString(file));
     }

@@ -1,4 +1,4 @@
-package SURVEY_PROGRAM.OBJECT;
+package survey_program.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

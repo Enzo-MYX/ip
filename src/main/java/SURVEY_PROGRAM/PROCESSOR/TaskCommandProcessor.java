@@ -1,4 +1,4 @@
-package SURVEY_PROGRAM.PROCESSOR;
+package survey_program.processor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -6,13 +6,17 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
-import SURVEY_PROGRAM.OBJECT.*;
+
+import survey_program.object.Deadline;
+import survey_program.object.Event;
+import survey_program.object.TaskList;
+import survey_program.object.Todo;
 
 /**
  * Interprets supported task commands and preserves the application's console responses.
  */
 public class TaskCommandProcessor {
-    private final Obj_List taskList;
+    private final TaskList taskList;
     private final String divider;
 
     private static final List<DateTimeFormatter> DATETIME_FORMATTERS = Arrays.asList(
@@ -33,7 +37,8 @@ public class TaskCommandProcessor {
             DateTimeFormatter.ofPattern("d/M/yyyy")
     );
 
-    public TaskCommandProcessor(Obj_List taskList, String divider) {
+    /** Creates a processor that routes commands to the supplied task list. */
+    public TaskCommandProcessor(TaskList taskList, String divider) {
         this.taskList = taskList;
         this.divider = divider;
     }
@@ -81,10 +86,10 @@ public class TaskCommandProcessor {
         }
         try {
             // parseDateTime returns LocalDateTime (time defaults to 00:00 if absent)
-            LocalDateTime dt = parseDateTime(parts[1].trim());
-            LocalDate date = dt.toLocalDate();
+            LocalDateTime dateTime = parseDateTime(parts[1].trim());
+            LocalDate date = dateTime.toLocalDate();
             taskList.listByDate(date);
-        } catch (DateTimeParseException e) {
+        } catch (DateTimeParseException exception) {
             System.out.println("BUT, THE DATE IS INVALID.");
         }
     }
@@ -95,9 +100,6 @@ public class TaskCommandProcessor {
         taskList.read();
     }
 
-    /**
-     * @return whether the caller should skip the command's trailing divider
-     */
     private void handleMark(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
@@ -140,7 +142,7 @@ public class TaskCommandProcessor {
                 LocalDateTime by = parseDateTime(parts[1].trim());
                 taskList.add(new Deadline(parts[0].trim(), by));
                 return;
-            } catch (DateTimeParseException e) {
+            } catch (DateTimeParseException exception) {
                 // fall through to error
             }
         }
@@ -157,7 +159,7 @@ public class TaskCommandProcessor {
                 LocalDateTime to = parseDateTime(parts[2].trim());
                 taskList.add(new Event(parts[0].trim(), from, to));
                 return;
-            } catch (DateTimeParseException e) {
+            } catch (DateTimeParseException exception) {
                 // fall through
             }
         }
@@ -173,21 +175,21 @@ public class TaskCommandProcessor {
      * Tries all supported date/time patterns in order and returns the first successful parse.
      * @throws DateTimeParseException if none of the patterns match
      */
-    private LocalDateTime parseDateTime(String dateTimeStr) throws DateTimeParseException {
+    private LocalDateTime parseDateTime(String dateTimeString) throws DateTimeParseException {
         for (DateTimeFormatter formatter : DATETIME_FORMATTERS) {
             try {
-                return LocalDateTime.parse(dateTimeStr, formatter);
-            } catch (DateTimeParseException e) {
+                return LocalDateTime.parse(dateTimeString, formatter);
+            } catch (DateTimeParseException exception) {
                 // try next formatter
             }
         }
         for (DateTimeFormatter formatter : DATE_FORMATTERS) {
             try {
-                return LocalDate.parse(dateTimeStr, formatter).atStartOfDay();
-            } catch (DateTimeParseException e) {
+                return LocalDate.parse(dateTimeString, formatter).atStartOfDay();
+            } catch (DateTimeParseException exception) {
                 // try next formatter
             }
         }
-        throw new DateTimeParseException("Unable to parse: " + dateTimeStr, dateTimeStr, 0);
+        throw new DateTimeParseException("Unable to parse: " + dateTimeString, dateTimeString, 0);
     }
 }
