@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import survey_program.persistence.TaskStorage;
 
@@ -21,7 +22,7 @@ public class TaskList {
      *
      * @param capacity maximum number of tasks the list can contain
      */
-    public Obj_List(int capacity) {
+    public TaskList(int capacity) {
         this(capacity, Path.of("data", "PERSIST.txt"));
     }
 
@@ -31,7 +32,7 @@ public class TaskList {
      * @param capacity maximum number of tasks the list can contain
      * @param saveFile file used to load and save tasks
      */
-    Obj_List(int capacity, Path saveFile) {
+    TaskList(int capacity, Path saveFile) {
         this.capacity = capacity;
         this.saveFile = saveFile;
     }
@@ -84,6 +85,27 @@ public class TaskList {
         }
         for (int i = 0; i < itemCount; i++) {
             System.out.printf("%d.%s%n", i + 1, items.get(i).toString());
+        }
+    }
+
+    /** Prints tasks whose descriptions contain the keyword, ignoring letter case. */
+    public void find(String keyword) {
+        if (keyword.isBlank()) {
+            System.out.println("BUT, THERE WAS NOTHING TO LOCATE.");
+            return;
+        }
+
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        List<Item> matchingItems = items.stream()
+                .filter(item -> item.getName().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .toList();
+        if (matchingItems.isEmpty()) {
+            System.out.println("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM.");
+            return;
+        }
+        System.out.println("VERY WELL. HERE IS YOUR MATCHING LIST:");
+        for (int i = 0; i < matchingItems.size(); i++) {
+            System.out.printf("%d.%s%n", i + 1, matchingItems.get(i));
         }
     }
 
