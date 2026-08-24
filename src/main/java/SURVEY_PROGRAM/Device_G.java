@@ -1,6 +1,13 @@
 /**
  * Starts the application and owns its presentation-only introduction.
  */
+package SURVEY_PROGRAM;
+
+import SURVEY_PROGRAM.INTERFACE.Secret;
+import SURVEY_PROGRAM.OBJECT.Obj_List;
+import SURVEY_PROGRAM.PROCESSOR.CommandLoop;
+import SURVEY_PROGRAM.PROCESSOR.TaskCommandProcessor;
+
 public class Device_G {
     private static final String DIVIDER = "____________________________________________________________________________________";
 

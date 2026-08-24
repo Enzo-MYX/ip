@@ -1,4 +1,6 @@
-import java.util.Scanner;
+package SURVEY_PROGRAM.INTERFACE;
+
+import SURVEY_PROGRAM.Device_G;
 
 public class Secret {
     public static void run(String divider) throws InterruptedException {
