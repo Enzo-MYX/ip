@@ -10,10 +10,6 @@ import java.util.stream.Collectors;
  * Stores the application's tasks in a fixed-size array.
  */
 public class Obj_List {
-    private static final String SAVE_FILE = "./data/PERSIST.txt";
-    private static final DateTimeFormatter FILE_FORMATTER =
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME;   // e.g., 2026-08-21T18:00
-
     private int itemCount = 0;
     private final ArrayList<Item> items = new ArrayList<>();
     private final int capacity;
@@ -21,91 +17,20 @@ public class Obj_List {
     public Obj_List(int capacity) {
         this.capacity = capacity;
     }
+    
+    public ArrayList<Item> getList() {
+        return items;
+    }
 
     /** Loads tasks from the save file, if it exists. */
     public void load() {
-        File file = new File(SAVE_FILE);
-        if (!file.exists()) {
-            return; // no previous data
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (itemCount >= capacity) {
-                    Secret.error(true);
-                    read();
-                    break;
-                }
-                String[] parts = line.split("\\|");
-                if (parts.length < 3) continue; // malformed line
-                String type = parts[0].trim();
-                boolean done = parts[1].trim().equals("y");
-                String desc = parts[2].trim();
-                Item item;
-                switch (type) {
-                    case "T":
-                        item = new Todo(desc);
-                        break;
-                    case "D":
-                        if (parts.length < 4) continue;
-                        LocalDateTime by = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
-                        item = new Deadline(desc, by);
-                        break;
-                    case "E":
-                        if (parts.length < 5) continue;
-                        LocalDateTime from = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
-                        LocalDateTime to = LocalDateTime.parse(parts[4].trim(), FILE_FORMATTER);
-                        item = new Event(desc, from, to);
-                        break;
-                    default:
-                        continue; // unknown type
-                }
-                item.setDone(done);
-                items.add(item);
-                itemCount++;
-            }
-        } catch (IOException e) {
-            Secret.error(false);
-        }
+        Obj_Storage.load(this, capacity);
+        itemCount = items.size();
     }
 
     /** Saves all tasks to the save file. */
     private void save() {
-        try {
-            File file = new File(SAVE_FILE);
-            file.getParentFile().mkdirs(); // ensure directory exists
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                for (int i = 0; i < itemCount; i++) {
-                    writer.println(itemToFileString(items.get(i)));
-                }
-            }
-        } catch (IOException e) {
-            Secret.error(false);
-        }
-    }
-
-    /** Converts a single item to its file representation. */
-    private String itemToFileString(Item item) {
-        String type;
-        String done = item.isDone() ? "y" : "n";
-        if (item instanceof Todo) {
-            type = "T";
-            return type + " | " + done + " | " + item.getName();
-        } else if (item instanceof Deadline) {
-            type = "D";
-            Deadline d = (Deadline) item;
-            return type + " | " + done + " | " + d.getName() + " | "
-                    + d.getBy().format(FILE_FORMATTER);
-        } else if (item instanceof Event) {
-            type = "E";
-            Event e = (Event) item;
-            return type + " | " + done + " | " + e.getName() + " | "
-                    + e.getFrom().format(FILE_FORMATTER) + " | "
-                    + e.getTo().format(FILE_FORMATTER);
-        } else {
-            // fallback (should not happen)
-            return "? | " + done + " | " + item.getName();
-        }
+        Obj_Storage.save(this);
     }
 
     /** Adds a non-empty task when storage remains available. */
