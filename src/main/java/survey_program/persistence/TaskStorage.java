@@ -18,24 +18,37 @@ import survey_program.object.TaskList;
 import survey_program.object.Todo;
 import survey_program.ui.Secret;
 
-/** Reads and writes task lists using the application's text-file format. */
+/**
+ * Serializes task lists to disk and reconstructs them from saved records.
+ */
 public class TaskStorage {
     private static final Path SAVE_FILE = Path.of("data", "PERSIST.txt");
     private static final DateTimeFormatter FILE_FORMATTER =
             DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    /** Loads tasks from the default save file. */
+    /**
+     * Loads tasks from the application's default save file.
+     *
+     * @param taskList task list that receives loaded items
+     * @param capacity maximum number of items to load
+     */
     public static void load(TaskList taskList, int capacity) {
         load(taskList, capacity, SAVE_FILE);
     }
 
-    /** Loads tasks from the supplied file path, primarily to support isolated tests. */
+    /**
+     * Loads tasks from a specified file, skipping malformed or unknown records.
+     *
+     * @param taskList task list that receives loaded items
+     * @param capacity maximum number of items to load
+     * @param saveFile file containing serialized task records
+     */
     public static void load(TaskList taskList, int capacity, Path saveFile) {
         ArrayList<Item> items = taskList.getList();
         int itemCount = 0;
         File file = saveFile.toFile();
         if (!file.exists()) {
-            return;
+            return; // no previous data
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -84,7 +97,12 @@ public class TaskStorage {
         }
     }
 
-    /** Converts a single item to its file representation. */
+    /**
+     * Converts an item into the pipe-delimited representation used in the save file.
+     *
+     * @param item task to serialize
+     * @return serialized task record
+     */
     private static String itemToFileString(Item item) {
         String type;
         String done = item.isDone() ? "y" : "n";
@@ -107,12 +125,21 @@ public class TaskStorage {
         }
     }
 
-    /** Saves tasks to the default save file. */
+    /**
+     * Writes all tasks to the application's default save file.
+     *
+     * @param taskList task list to save
+     */
     public static void save(TaskList taskList) {
         save(taskList, SAVE_FILE);
     }
 
-    /** Saves tasks to the supplied file path, primarily to support isolated tests. */
+    /**
+     * Writes all tasks to a specified file, creating parent directories when needed.
+     *
+     * @param taskList task list to save
+     * @param saveFile destination for serialized task records
+     */
     public static void save(TaskList taskList, Path saveFile) {
         ArrayList<Item> items = taskList.getList();
         int itemCount = items.size();
@@ -120,7 +147,7 @@ public class TaskStorage {
             File file = saveFile.toFile();
             File parent = file.getParentFile();
             if (parent != null) {
-                parent.mkdirs();
+                parent.mkdirs(); // ensure directory exists
             }
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 for (int i = 0; i < itemCount; i++) {

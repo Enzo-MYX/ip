@@ -17,21 +17,30 @@ public class TaskList {
     private final Path saveFile;
 
     /**
-     * Creates a task list with the supplied maximum capacity.
+     * Creates a task list that uses the default save file.
      *
-     * @param capacity Maximum number of tasks that can be stored.
+     * @param capacity maximum number of tasks the list can contain
      */
-    public TaskList(int capacity) {
+    public Obj_List(int capacity) {
         this(capacity, Path.of("data", "PERSIST.txt"));
     }
 
-    /** Creates a task list backed by a specific save file, allowing isolated tests. */
-    TaskList(int capacity, Path saveFile) {
+    /**
+     * Creates a task list backed by a specific save file.
+     *
+     * @param capacity maximum number of tasks the list can contain
+     * @param saveFile file used to load and save tasks
+     */
+    Obj_List(int capacity, Path saveFile) {
         this.capacity = capacity;
         this.saveFile = saveFile;
     }
 
-    /** Returns the mutable list used by the persistence layer. */
+    /**
+     * Returns the mutable collection used to store tasks.
+     *
+     * @return stored tasks
+     */
     public ArrayList<Item> getList() {
         return items;
     }
@@ -42,12 +51,16 @@ public class TaskList {
         itemCount = items.size();
     }
 
-    /** Saves all tasks to the save file. */
+    /** Saves all current tasks and completion states to the configured file. */
     private void save() {
         TaskStorage.save(this, saveFile);
     }
 
-    /** Adds a non-empty task when storage remains available. */
+    /**
+     * Adds and saves a non-empty task when storage remains available.
+     *
+     * @param item task to add
+     */
     public void add(Item item) {
         if (itemCount >= capacity) {
             System.out.println("BUT, THERE IS NO MORE MEMORY TO ALLOCATE.");
@@ -59,7 +72,7 @@ public class TaskList {
             items.add(item);
             itemCount++;
             System.out.println("ORDER PROCESSED: " + item.toString().toUpperCase());
-            save();
+            save(); // persist after addition
         }
     }
 
@@ -74,7 +87,12 @@ public class TaskList {
         }
     }
 
-    /** Marks or unmarks the task at the supplied zero-based index. */
+    /**
+     * Marks or unmarks the task at the supplied zero-based index.
+     *
+     * @param index zero-based index of the task
+     * @param isReverse {@code true} to unmark the task, or {@code false} to mark it
+     */
     public void mark(int index, boolean isReverse) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
@@ -84,11 +102,15 @@ public class TaskList {
             } else {
                 items.get(index).mark();
             }
-            save();
+            save(); // persist status change
         }
     }
 
-    /** Deletes the task at the supplied zero-based index. */
+    /**
+     * Removes and saves the task at a zero-based index.
+     *
+     * @param index zero-based index of the task to remove
+     */
     public void delete(int index) {
         if (index < 0 || index >= itemCount) {
             System.out.println("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
@@ -97,11 +119,15 @@ public class TaskList {
             items.remove(index);
             itemCount--;
             System.out.println("IT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
-            save();
+            save(); // persist after deletion
         }
     }
 
-    /** Lists tasks that occur on the supplied date. */
+    /**
+     * Prints deadlines and events that occur on a specified date.
+     *
+     * @param date date used to filter tasks
+     */
     public void listByDate(LocalDate date) {
         List<Item> matchingItems = items.stream().filter(item -> item.inRange(date)).toList();
         if (matchingItems.isEmpty()) {

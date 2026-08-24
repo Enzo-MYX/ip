@@ -2,9 +2,20 @@ package survey_program.ui;
 
 import survey_program.DeviceG;
 
-/** Displays the narrative introduction and persistence-error messages. */
+/**
+ * Displays the application's timed introductory sequence and persistence warnings.
+ */
 public class Secret {
-    /** Displays the introduction and starts the functional console interface. */
+    private Secret() {
+        // This class contains only presentation utilities.
+    }
+
+    /**
+     * Plays the introduction, starts the command interface, and displays the farewell.
+     *
+     * @param divider line used to separate sections of console output
+     * @throws InterruptedException if a timed pause is interrupted
+     */
     public static void run(String divider) throws InterruptedException {
         Thread.sleep(3000);
         System.out.println("\nGREETINGS.\n");
@@ -33,7 +44,11 @@ public class Secret {
         System.out.println("\n(*  Well, there was not a man here.)");
     }
 
-    /** Reports damaged persistence data and whether any records were recovered. */
+    /**
+     * Displays a warning after stored data cannot be fully read or written.
+     *
+     * @param hasSavedRecords whether part of the stored data was successfully recovered
+     */
     public static void error(boolean hasSavedRecords) {
         try {
             System.out.println("CURIOUS.\n");
