@@ -8,10 +8,10 @@ import survey_program.processor.TaskCommandProcessor;
 /**
  * Starts the application and owns its presentation-only introduction.
  */
-public class Device_G {
+public class DeviceG {
     private static final String DIVIDER = "____________________________________________________________________________________";
 
-    private Device_G() {
+    private DeviceG() {
         // This class contains only application entry points.
     }
 
