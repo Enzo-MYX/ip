@@ -1,4 +1,4 @@
-package survey_program.processor;
+package surveyprogram.processor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -7,18 +7,15 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 
-import survey_program.object.Deadline;
-import survey_program.object.Event;
-import survey_program.object.TaskList;
-import survey_program.object.Todo;
+import surveyprogram.object.Deadline;
+import surveyprogram.object.Event;
+import surveyprogram.object.TaskList;
+import surveyprogram.object.Todo;
 
 /**
  * Interprets supported task commands and preserves the application's console responses.
  */
 public class TaskCommandProcessor {
-    private final TaskList taskList;
-    private final String divider;
-
     private static final List<DateTimeFormatter> DATETIME_FORMATTERS = Arrays.asList(
             DateTimeFormatter.ofPattern("yyyy-M-d HH:mm"),
             DateTimeFormatter.ofPattern("yyyy-M-d HHmm"),
@@ -36,6 +33,9 @@ public class TaskCommandProcessor {
             DateTimeFormatter.ofPattern("d-M-yyyy"),
             DateTimeFormatter.ofPattern("d/M/yyyy")
     );
+
+    private final TaskList taskList;
+    private final String divider;
 
     /**
      * Creates a processor that applies commands to a task list.

@@ -1,4 +1,4 @@
-package survey_program.object;
+package surveyprogram.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -73,7 +74,7 @@ class TaskListTest {
 
     @Test
     void find_matchingMissingAndBlankKeywords_printsExpectedResponses() {
-        Obj_List list = newList(3);
+        TaskList list = newList(3);
         list.add(new Todo("read book"));
         list.add(new Todo("buy groceries"));
         list.add(new Deadline("return BOOK", LocalDateTime.of(2026, 6, 6, 0, 0)));

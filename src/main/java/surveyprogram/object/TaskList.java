@@ -1,4 +1,4 @@
-package survey_program.object;
+package surveyprogram.object;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import survey_program.persistence.TaskStorage;
+import surveyprogram.persistence.TaskStorage;
 
 /**
  * Stores the application's tasks in a fixed-size array.

@@ -1,4 +1,4 @@
-package survey_program.persistence;
+package surveyprogram.persistence;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import survey_program.object.Deadline;
-import survey_program.object.Event;
-import survey_program.object.Item;
-import survey_program.object.TaskList;
-import survey_program.object.Todo;
-import survey_program.ui.Secret;
+import surveyprogram.object.Deadline;
+import surveyprogram.object.Event;
+import surveyprogram.object.Item;
+import surveyprogram.object.TaskList;
+import surveyprogram.object.Todo;
+import surveyprogram.ui.Secret;
 
 /**
  * Serializes task lists to disk and reconstructs them from saved records.

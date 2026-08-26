@@ -1,4 +1,4 @@
-package survey_program.object;
+package surveyprogram.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Test;
 
 /** Tests state transitions for a completable {@link Item}. */

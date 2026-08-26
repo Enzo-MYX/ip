@@ -1,4 +1,4 @@
-package survey_program.processor;
+package surveyprogram.processor;
 
 import java.io.InputStream;
 import java.util.Scanner;

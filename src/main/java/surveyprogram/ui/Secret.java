@@ -1,6 +1,6 @@
-package survey_program.ui;
+package surveyprogram.ui;
 
-import survey_program.DeviceG;
+import surveyprogram.DeviceG;
 
 /**
  * Displays the application's timed introductory sequence and persistence warnings.

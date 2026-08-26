@@ -1,4 +1,4 @@
-package survey_program.processor;
+package surveyprogram.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import survey_program.object.TaskList;
+import surveyprogram.object.TaskList;
 
 /** Tests that the command loop reads commands in order and stops at exit. */
 class CommandLoopTest {

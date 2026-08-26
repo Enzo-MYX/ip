@@ -35,7 +35,7 @@ try {
 /** Starts the application at its functional entry point for UI testing. */
 public class BootLauncher {
     public static void main(String[] args) {
-        survey_program.DeviceG.boot();
+        surveyprogram.DeviceG.boot();
     }
 }
 "@ | Set-Content -LiteralPath $launcherFile
