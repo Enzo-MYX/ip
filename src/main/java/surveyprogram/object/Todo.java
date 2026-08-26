@@ -1,4 +1,4 @@
-package survey_program.object;
+package surveyprogram.object;
 
 /**
  * Represents a task without a date or time.

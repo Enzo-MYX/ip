@@ -1,4 +1,4 @@
-package survey_program.object;
+package surveyprogram.object;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

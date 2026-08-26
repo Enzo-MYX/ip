@@ -1,4 +1,4 @@
-package survey_program.persistence;
+package surveyprogram.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,9 +11,9 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import survey_program.object.Deadline;
-import survey_program.object.TaskList;
-import survey_program.object.Todo;
+import surveyprogram.object.Deadline;
+import surveyprogram.object.TaskList;
+import surveyprogram.object.Todo;
 
 /** Tests persistence parsing independently from the application's real save file. */
 class TaskStorageTest {

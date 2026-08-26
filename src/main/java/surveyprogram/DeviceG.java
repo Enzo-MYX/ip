@@ -1,15 +1,16 @@
-package survey_program;
+package surveyprogram;
 
-import survey_program.ui.Secret;
-import survey_program.object.TaskList;
-import survey_program.processor.CommandLoop;
-import survey_program.processor.TaskCommandProcessor;
+import surveyprogram.object.TaskList;
+import surveyprogram.processor.CommandLoop;
+import surveyprogram.processor.TaskCommandProcessor;
+import surveyprogram.ui.Secret;
 
 /**
  * Starts the application and owns its presentation-only introduction.
  */
 public class DeviceG {
-    private static final String DIVIDER = "____________________________________________________________________________________";
+    private static final String DIVIDER =
+            "____________________________________________________________________________________";
 
     private DeviceG() {
         // This class contains only application entry points.

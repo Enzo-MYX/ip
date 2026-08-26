@@ -1,4 +1,4 @@
-package survey_program.processor;
+package surveyprogram.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,11 +15,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import survey_program.object.Deadline;
-import survey_program.object.Event;
-import survey_program.object.Item;
-import survey_program.object.TaskList;
-import survey_program.object.Todo;
+import surveyprogram.object.Deadline;
+import surveyprogram.object.Event;
+import surveyprogram.object.Item;
+import surveyprogram.object.TaskList;
+import surveyprogram.object.Todo;
 
 /** Tests command recognition, parsing, fallback behavior, and routing. */
 class TaskCommandProcessorTest {
