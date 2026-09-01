@@ -78,4 +78,44 @@ public class Secret {
             throw new RuntimeException(exception);
         }
     }
+
+    /**
+     * Returns the introductory dialogue without timed pauses.
+     *
+     * @return introductory dialogue for the GUI
+     */
+    public static String getOpeningDialogue() {
+        return """
+            GREETINGS.
+
+            WE MEET ONCE MORE.
+
+            WELL THEN,
+
+            SHALL WE HASTEN?
+
+            NOW.
+
+            LET US POPULATE THE CONTENTS
+            OF THE DEVICE
+            AS YOU WISH.
+
+            *  (With repetition, you found yourself answering the machine more fluently.)
+            *  (Seems like you know all the commands you need to.)
+            *  (Still, you remembered you can say "bye" to leave!)
+            """.strip();
+    }
+
+    /**
+     * Returns the farewell dialogue without timed pauses.
+     *
+     * @return farewell dialogue for the GUI
+     */
+    public static String getClosingDialogue() {
+        return """
+            THEN, UNTIL WE MEET ONCE MORE.
+
+            (*  Well, there was not a man here.)
+            """.strip();
+    }
 }

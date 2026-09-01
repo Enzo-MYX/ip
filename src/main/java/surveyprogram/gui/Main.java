@@ -8,12 +8,14 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+import surveyprogram.DeviceG;
+
 /**
  * A GUI for Duke using FXML.
  */
 public class Main extends Application {
 
-    private Duke duke = new Duke();
+    private final DeviceG deviceG = new DeviceG();
 
     @Override
     public void start(Stage stage) {
@@ -22,7 +24,7 @@ public class Main extends Application {
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
             stage.setScene(scene);
-            fxmlLoader.<MainWindow>getController().setDuke(duke);  // inject the Duke instance
+            fxmlLoader.<MainWindow>getController().setDevice(deviceG);  // inject the Device instance
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

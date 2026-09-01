@@ -7,6 +7,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import surveyprogram.DeviceG;
+
 /**
  * Controller for the main GUI.
  */
@@ -20,7 +22,7 @@ public class MainWindow extends AnchorPane {
     @FXML
     private Button sendButton;
 
-    private Duke duke;
+    private DeviceG deviceG;
 
     private Image userImage = new Image(this.getClass().getResourceAsStream(
             "/images/Double Green Gaster from Deltarune.png"));
@@ -32,9 +34,15 @@ public class MainWindow extends AnchorPane {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
     }
 
-    /** Injects the Duke instance */
-    public void setDuke(Duke d) {
-        duke = d;
+    /**
+     * Injects the backend and displays its introductory dialogue.
+     *
+     * @param deviceG application backend
+     */
+    public void setDevice(DeviceG deviceG) {
+        this.deviceG = deviceG;
+        dialogContainer.getChildren().add(
+                DialogBox.getDukeDialog(deviceG.getOpeningDialogue(), dukeImage));
     }
 
     /**
@@ -44,7 +52,7 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = duke.getResponse(input);
+        String response = deviceG.getResponse(input);
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
                 DialogBox.getDukeDialog(response, dukeImage)
