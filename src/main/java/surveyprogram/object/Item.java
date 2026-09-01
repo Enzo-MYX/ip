@@ -28,26 +28,32 @@ public class Item {
         return String.format("[%s] %s", isDone ? "X" : " ", name);
     }
 
-    /** Marks this task as complete and reports the resulting state. */
-    public void mark() {
+    /**
+     * Marks this task as complete and returns a description of the result.
+     *
+     * @return message describing the resulting task state
+     */
+    public String mark() {
         if (isDone) {
-            System.out.println("BUT, IT WAS ALREADY DONE.");
-        } else {
-            isDone = true;
-            System.out.println("THEN, IT IS DONE.");
-            System.out.println(this);
+            return "BUT, IT WAS ALREADY DONE.";
         }
+
+        isDone = true;
+        return "THEN, IT IS DONE.\n" + this;
     }
 
-    /** Marks this task as incomplete and reports the resulting state. */
-    public void undo() {
+    /**
+     * Marks this task as incomplete and returns a description of the result.
+     *
+     * @return message describing the resulting task state
+     */
+    public String undo() {
         if (isDone) {
             isDone = false;
-            System.out.println("THEN, IT WAS AS IF IT WAS NEVER DONE.");
-            System.out.println(this);
-        } else {
-            System.out.println("BUT, YOU HAVEN'T DONE IT IN THE FIRST PLACE.");
+            return "THEN, IT WAS AS IF IT WAS NEVER DONE.\n" + this;
         }
+
+        return "BUT, YOU HAVEN'T DONE IT IN THE FIRST PLACE.";
     }
 
     /**

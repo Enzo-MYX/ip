@@ -28,13 +28,13 @@ class CommandLoopTest {
         private final ArrayList<String> inputs = new ArrayList<>();
 
         RecordingProcessor() {
-            super(new TaskList(0), "---");
+            super(new TaskList(0));
         }
 
         @Override
-        public boolean process(String input) {
+        public CommandResult process(String input) {
             inputs.add(input);
-            return !input.equals("bye");
+            return new CommandResult("", !input.equals("bye"));
         }
     }
 }

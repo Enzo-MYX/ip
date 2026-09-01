@@ -41,6 +41,7 @@ public class BootLauncher {
 "@ | Set-Content -LiteralPath $launcherFile
 
     $sourceFiles = Get-ChildItem -Path (Join-Path $repositoryRoot "src/main/java") -Filter *.java -Recurse |
+            Where-Object { $_.FullName -notmatch '[\\/]gui[\\/]|[\\/]Launcher\.java$' } |
             Select-Object -ExpandProperty FullName
     & javac -d $classesDirectory $sourceFiles $launcherFile
     if ($LASTEXITCODE -ne 0) {

@@ -13,7 +13,7 @@ import surveyprogram.object.TaskList;
 import surveyprogram.object.Todo;
 
 /**
- * Interprets supported task commands and preserves the application's console responses.
+ * Interprets supported task commands and returns the dialogue for each command.
  */
 public class TaskCommandProcessor {
     private static final List<DateTimeFormatter> DATETIME_FORMATTERS = Arrays.asList(
@@ -35,53 +35,47 @@ public class TaskCommandProcessor {
     );
 
     private final TaskList taskList;
-    private final String divider;
-
     /**
      * Creates a processor that applies commands to a task list.
      *
      * @param taskList task list to query and modify
-     * @param divider line printed between console responses
      */
-    public TaskCommandProcessor(TaskList taskList, String divider) {
+    public TaskCommandProcessor(TaskList taskList) {
         this.taskList = taskList;
-        this.divider = divider;
     }
 
     /**
      * Processes one command.
      *
      * @param input the exact line entered by the user
-     * @return {@code false} only when the application should exit
+     * @return dialogue and whether the application should accept another command
      */
-    public boolean process(String input) {
+    public CommandResult process(String input) {
         String lowerCaseInput = input.toLowerCase();
         if (lowerCaseInput.trim().equals("bye")) {
-            return false;
+            return new CommandResult("", false);
         }
+        String response;
         if (lowerCaseInput.trim().equals("list")) {
-            printList();
+            response = "VERY WELL. HERE IS YOUR LIST:\n" + taskList.read();
         } else if (lowerCaseInput.trim().equals("find") || lowerCaseInput.startsWith("find ")) {
-            handleFind(input);
+            response = taskList.find(input.substring(4).trim());
         } else if (lowerCaseInput.startsWith("date ")) {
-            handleDate(input);
+            response = handleDate(input);
         } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
-            handleMark(input);
+            response = handleMark(input);
         } else if (lowerCaseInput.startsWith("todo ")) {
-            System.out.println(divider);
-            taskList.add(new Todo(input.substring(5).trim()));
+            response = taskList.add(new Todo(input.substring(5).trim()));
         } else if (lowerCaseInput.startsWith("deadline ")) {
-            addDeadline(input);
+            response = addDeadline(input);
         } else if (lowerCaseInput.startsWith("event ")) {
-            addEvent(input);
+            response = addEvent(input);
         } else if (lowerCaseInput.startsWith("delete ")) {
-            handleDelete(input);
+            response = handleDelete(input);
         } else {
-            System.out.println(divider);
-            System.out.println("WELL, THAT IS NO LONGER A COMMAND.");
+            response = "WELL, THAT IS NO LONGER A COMMAND.";
         }
-        System.out.println(divider);
-        return true;
+        return new CommandResult(response, true);
     }
 
     /**
@@ -89,35 +83,19 @@ public class TaskCommandProcessor {
      *
      * @param input complete date command entered by the user
      */
-    private void handleDate(String input) {
-        System.out.println(divider);
+    private String handleDate(String input) {
         String[] parts = input.split(" ", 2);
         if (parts.length < 2) {
-            System.out.println("BUT, THERE WAS NOT A DATE TO CHECK.");
-            return;
+            return "BUT, THERE WAS NOT A DATE TO CHECK.";
         }
         try {
             // parseDateTime returns LocalDateTime (time defaults to 00:00 if absent)
             LocalDateTime dateTime = parseDateTime(parts[1].trim());
             LocalDate date = dateTime.toLocalDate();
-            taskList.listByDate(date);
+            return taskList.listByDate(date);
         } catch (DateTimeParseException exception) {
-            System.out.println("BUT, THE DATE IS INVALID.");
+            return "BUT, THE DATE IS INVALID.";
         }
-    }
-
-    /** Prints the heading and current task list. */
-    private void printList() {
-        System.out.println(divider);
-        System.out.println("VERY WELL. HERE IS YOUR LIST:");
-        taskList.read();
-    }
-
-    /** Finds tasks whose descriptions contain the supplied keyword. */
-    private void handleFind(String input) {
-        System.out.println(divider);
-        String keyword = input.substring(4).trim();
-        taskList.find(keyword);
     }
 
     /**
@@ -125,20 +103,16 @@ public class TaskCommandProcessor {
      *
      * @param input complete mark or unmark command entered by the user
      */
-    private void handleMark(String input) {
+    private String handleMark(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
-            System.out.println(divider);
-            System.out.println("BUT, THE OBJECT IS NOT SPECIFIED.");
-            return;
+            return "BUT, THE OBJECT IS NOT SPECIFIED.";
         }
         try {
             int itemIndex = Integer.parseInt(commandParts[1]) - 1;
-            System.out.println(divider);
-            taskList.mark(itemIndex, commandParts[0].equals("unmark"));
+            return taskList.mark(itemIndex, commandParts[0].equals("unmark"));
         } catch (NumberFormatException exception) {
-            System.out.println(divider);
-            System.out.println("BUT, IT IS INVALID.");
+            return "BUT, IT IS INVALID.";
         }
     }
 
@@ -147,20 +121,16 @@ public class TaskCommandProcessor {
      *
      * @param input complete delete command entered by the user
      */
-    private void handleDelete(String input) {
+    private String handleDelete(String input) {
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
-            System.out.println(divider);
-            System.out.println("BUT, THE OBJECT IS NOT SPECIFIED.");
-            return;
+            return "BUT, THE OBJECT IS NOT SPECIFIED.";
         }
         try {
             int itemIndex = Integer.parseInt(commandParts[1]) - 1;
-            System.out.println(divider);
-            taskList.delete(itemIndex);
+            return taskList.delete(itemIndex);
         } catch (NumberFormatException exception) {
-            System.out.println(divider);
-            System.out.println("BUT, IT IS INVALID.");
+            return "BUT, IT IS INVALID.";
         }
     }
 
@@ -169,20 +139,17 @@ public class TaskCommandProcessor {
      *
      * @param input complete deadline command entered by the user
      */
-    private void addDeadline(String input) {
-        System.out.println(divider);
+    private String addDeadline(String input) {
         String[] parts = input.substring(9).split("(?i) /by ", 2);
         if (parts.length == 2) {
             try {
                 LocalDateTime by = parseDateTime(parts[1].trim());
-                taskList.add(new Deadline(parts[0].trim(), by));
-                return;
+                return taskList.add(new Deadline(parts[0].trim(), by));
             } catch (DateTimeParseException exception) {
                 // fall through to error
             }
         }
-        printMistake();
-        taskList.add(new Todo(input.substring(9).trim()));
+        return mistakeWith(taskList.add(new Todo(input.substring(9).trim())));
     }
 
     /**
@@ -190,26 +157,23 @@ public class TaskCommandProcessor {
      *
      * @param input complete event command entered by the user
      */
-    private void addEvent(String input) {
-        System.out.println(divider);
+    private String addEvent(String input) {
         String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
         if (parts.length == 3) {
             try {
                 LocalDateTime from = parseDateTime(parts[1].trim());
                 LocalDateTime to = parseDateTime(parts[2].trim());
-                taskList.add(new Event(parts[0].trim(), from, to));
-                return;
+                return taskList.add(new Event(parts[0].trim(), from, to));
             } catch (DateTimeParseException exception) {
                 // fall through
             }
         }
-        printMistake();
-        taskList.add(new Todo(input.substring(6).trim()));
+        return mistakeWith(taskList.add(new Todo(input.substring(6).trim())));
     }
 
-    /** Prints the message used when a dated task cannot be parsed. */
-    private void printMistake() {
-        System.out.println("YOU MUST BE\nMISTAKEN.\n\nHERE.");
+    /** Returns the dated-task error followed by its fallback result. */
+    private String mistakeWith(String fallbackResponse) {
+        return "YOU MUST BE\nMISTAKEN.\n\nHERE.\n" + fallbackResponse;
     }
 
     /**
