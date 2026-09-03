@@ -6,6 +6,9 @@ import surveyprogram.DeviceG;
  * Displays the application's timed introductory sequence and persistence warnings.
  */
 public class Secret {
+    private static final String DIVIDER =
+            "____________________________________________________________________________________";
+
     private Secret() {
         // This class contains only presentation utilities.
     }
@@ -13,10 +16,9 @@ public class Secret {
     /**
      * Plays the introduction, starts the command interface, and displays the farewell.
      *
-     * @param divider line used to separate sections of console output
      * @throws InterruptedException if a timed pause is interrupted
      */
-    public static void run(String divider) throws InterruptedException {
+    public static void run() throws InterruptedException {
         Thread.sleep(3000);
         System.out.println("\nGREETINGS.\n");
         Thread.sleep(3000);
@@ -26,7 +28,7 @@ public class Secret {
         Thread.sleep(2000);
         System.out.println("SHALL WE HASTEN?\n");
         Thread.sleep(2000);
-        System.out.println(divider);
+        System.out.println(DIVIDER);
         System.out.println("\nNOW.\n");
         Thread.sleep(2000);
         System.out.println("LET US POPULATE THE CONTENTS\nOF THE DEVICE\nAS YOU WISH.\n");
@@ -37,9 +39,9 @@ public class Secret {
         Thread.sleep(1000);
         System.out.println("*  (Still, you remembered you can say \"bye\" to leave!)");
         DeviceG.boot();
-        System.out.println(divider);
+        System.out.println(DIVIDER);
         System.out.println("\nTHEN, UNTIL WE MEET ONCE MORE.");
-        System.out.println(divider);
+        System.out.println(DIVIDER);
         Thread.sleep(3000);
         System.out.println("\n(*  Well, there was not a man here.)");
     }
@@ -77,5 +79,45 @@ public class Secret {
         } catch (InterruptedException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    /**
+     * Returns the introductory dialogue without timed pauses.
+     *
+     * @return introductory dialogue for the GUI
+     */
+    public static String getOpeningDialogue() {
+        return """
+            GREETINGS.
+
+            WE MEET ONCE MORE.
+
+            WELL THEN,
+
+            SHALL WE HASTEN?
+
+            NOW.
+
+            LET US POPULATE THE CONTENTS
+            OF THE DEVICE
+            AS YOU WISH.
+
+            *  (With repetition, you found yourself answering the machine more fluently.)
+            *  (Seems like you know all the commands you need to.)
+            *  (Still, you remembered you can say "bye" to leave!)
+            """.strip();
+    }
+
+    /**
+     * Returns the farewell dialogue without timed pauses.
+     *
+     * @return farewell dialogue for the GUI
+     */
+    public static String getClosingDialogue() {
+        return """
+            THEN, UNTIL WE MEET ONCE MORE.
+
+            (*  Well, there was not a man here.)
+            """.strip();
     }
 }

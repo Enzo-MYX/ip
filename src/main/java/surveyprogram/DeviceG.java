@@ -9,9 +9,6 @@ import surveyprogram.ui.Secret;
  * Starts the application and owns its presentation-only introduction.
  */
 public class DeviceG {
-    private static final String DIVIDER =
-            "____________________________________________________________________________________";
-
     private DeviceG() {
         // This class contains only application entry points.
     }
@@ -32,17 +29,23 @@ public class DeviceG {
                 ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░\s
                 ░▒▓███████▓▒░░▒▓████████▓▒░  ░▒▓██▓▒░  ░▒▓█▓▒░░▒▓██████▓▒░░▒▓████████▓▒░▒▓██████▓▒░ \s
                 """;
-        System.out.println(DIVIDER);
         System.out.println(banner.stripTrailing());
-        System.out.println(DIVIDER);
-        Secret.run(DIVIDER);
+        Secret.run();
     }
 
     /** Starts the functional console interface after the introduction. */
     public static void boot() {
-        System.out.println(DIVIDER);
+        new CommandLoop(System.in, createCommandProcessor()).run();
+    }
+
+    /**
+     * Creates a command processor backed by the saved task list.
+     *
+     * @return initialized command processor
+     */
+    public static TaskCommandProcessor createCommandProcessor() {
         TaskList taskList = new TaskList(100);
-        taskList.load(); // restore saved tasks, if any
-        new CommandLoop(System.in, new TaskCommandProcessor(taskList, DIVIDER)).run();
+        taskList.load();
+        return new TaskCommandProcessor(taskList);
     }
 }

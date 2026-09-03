@@ -1,5 +1,7 @@
 package surveyprogram.gui;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -7,10 +9,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import surveyprogram.processor.CommandResult;
+import surveyprogram.processor.TaskCommandProcessor;
+import surveyprogram.ui.Secret;
+
 /**
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
+    private static final Duration CLOSING_DELAY = Duration.seconds(3);
+
     @FXML
     private ScrollPane scrollPane;
     @FXML
@@ -20,7 +29,7 @@ public class MainWindow extends AnchorPane {
     @FXML
     private Button sendButton;
 
-    private Duke duke;
+    private TaskCommandProcessor commandProcessor;
 
     private Image userImage = new Image(this.getClass().getResourceAsStream(
             "/images/Double Green Gaster from Deltarune.png"));
@@ -32,9 +41,15 @@ public class MainWindow extends AnchorPane {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
     }
 
-    /** Injects the Duke instance */
-    public void setDuke(Duke d) {
-        duke = d;
+    /**
+     * Injects the command processor and displays the introductory dialogue.
+     *
+     * @param commandProcessor processor that handles text-field commands
+     */
+    public void setCommandProcessor(TaskCommandProcessor commandProcessor) {
+        this.commandProcessor = commandProcessor;
+        dialogContainer.getChildren().add(
+                DialogBox.getDukeDialog(Secret.getOpeningDialogue(), dukeImage));
     }
 
     /**
@@ -44,11 +59,28 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = duke.getResponse(input);
+        CommandResult result = commandProcessor.process(input);
+        String response = result.shouldContinue()
+                ? result.response()
+                : Secret.getClosingDialogue();
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
                 DialogBox.getDukeDialog(response, dukeImage)
         );
         userInput.clear();
+
+        if (!result.shouldContinue()) {
+            closeAfterFarewell();
+        }
+    }
+
+    /** Disables further interaction and closes the application after the farewell delay. */
+    private void closeAfterFarewell() {
+        userInput.setDisable(true);
+        sendButton.setDisable(true);
+
+        PauseTransition closingPause = new PauseTransition(CLOSING_DELAY);
+        closingPause.setOnFinished(event -> Platform.exit());
+        closingPause.play();
     }
 }

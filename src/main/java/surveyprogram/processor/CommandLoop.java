@@ -24,9 +24,13 @@ public class CommandLoop {
     /** Runs until the user enters the exit command. */
     public void run() {
         try (Scanner scanner = new Scanner(inputStream)) {
-            while (commandProcessor.process(scanner.nextLine())) {
-                // The processor handles all user-facing output for a command.
-            }
+            CommandResult result;
+            do {
+                result = commandProcessor.process(scanner.nextLine());
+                if (!result.response().isEmpty()) {
+                    System.out.println(result.response());
+                }
+            } while (result.shouldContinue());
         }
     }
 }
