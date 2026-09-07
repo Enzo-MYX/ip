@@ -134,6 +134,32 @@ class TaskCommandProcessorTest {
         assertEquals("book", list.findKeyword);
     }
 
+    @Test
+    void process_commands_assignsReplyTypesByOutcome() {
+        RecordingList list = new RecordingList();
+        TaskCommandProcessor processor = new TaskCommandProcessor(list);
+
+        assertEquals(ReplyType.TASK_CREATED, processor.process("todo read").replyType());
+        assertEquals(ReplyType.LIST, processor.process("list").replyType());
+        assertEquals(ReplyType.FIND, processor.process("find read").replyType());
+        assertEquals(ReplyType.MARK_COMPLETED, processor.process("mark 1").replyType());
+        assertEquals(ReplyType.UNMARKED, processor.process("unmark 1").replyType());
+        assertEquals(ReplyType.DELETED, processor.process("delete 1").replyType());
+        assertEquals(ReplyType.DATE_QUERY, processor.process("date 2026-8-24").replyType());
+        assertEquals(ReplyType.ERROR, processor.process("unknown").replyType());
+        assertEquals(ReplyType.DEFAULT, processor.process("bye").replyType());
+    }
+
+    @Test
+    void process_emptyAndInvalidOutcomes_overrideCommandReplyType() {
+        TaskCommandProcessor emptyProcessor = new TaskCommandProcessor(new TaskList(10));
+
+        assertEquals(ReplyType.EMPTY, emptyProcessor.process("find absent").replyType());
+        assertEquals(ReplyType.EMPTY, emptyProcessor.process("date 2026-8-24").replyType());
+        assertEquals(ReplyType.ERROR, emptyProcessor.process("todo ").replyType());
+        assertEquals(ReplyType.ERROR, emptyProcessor.process("mark invalid").replyType());
+    }
+
     /** Minimal list double that records processor calls without touching persistence. */
     private static class RecordingList extends TaskList {
         private final ArrayList<Item> addedItems = new ArrayList<>();

@@ -32,9 +32,9 @@ public class MainWindow extends AnchorPane {
     private TaskCommandProcessor commandProcessor;
 
     private Image userImage = new Image(this.getClass().getResourceAsStream(
-            "/images/Double Green Gaster from Deltarune.png"));
+            "/images/Kris (Art by JMK-Prime).png"));
     private Image dukeImage = new Image(this.getClass().getResourceAsStream(
-            "/images/(D)UI.png"));
+            "/images/Double Green Gaster from Deltarune.png"));
 
     @FXML
     public void initialize() {
@@ -65,7 +65,7 @@ public class MainWindow extends AnchorPane {
                 : Secret.getClosingDialogue();
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
-                DialogBox.getDukeDialog(response, dukeImage)
+                DialogBox.getDukeDialog(response, dukeImage, result.replyType())
         );
         userInput.clear();
 

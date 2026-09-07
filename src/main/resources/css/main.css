@@ -1,6 +1,8 @@
 .root {
-    main-color: rgb(237, 255, 242);       /* Create a looked-up color called "main-color" within root. */
+    main-color: #6a7bc4;
     -fx-background-color: main-color;
+    -fx-background-image: url("../images/IMAGE_DEPTH_BG.png");
+    -fx-background-repeat: repeat;
 }
 
 .text-field {
@@ -23,18 +25,21 @@
     -fx-font-size: 20px;
 }
 
-.scroll-pane,
+.scroll-pane {
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+}
+
 .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
 
 .scroll-bar {
     -fx-font-size: 10px;  /* Change width of scroll bar. */
-    -fx-background-color: main-color;
+    -fx-background-color: #00c000;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #ff9cb4;
+    -fx-background-color: #00c000;
     -fx-background-radius: 1em;
 }
 
