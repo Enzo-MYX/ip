@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import surveyprogram.processor.ReplyType;
 
 /**
  * Represents a dialog box consisting of an ImageView to represent the speaker's face
@@ -41,12 +42,15 @@ public class DialogBox extends HBox {
     /**
      * Flips the dialog box such that the ImageView is on the left and text on the right.
      */
-    private void flip() {
+    private void flip(ReplyType replyType) {
         ObservableList<Node> tmp = FXCollections.observableArrayList(this.getChildren());
         Collections.reverse(tmp);
         getChildren().setAll(tmp);
-        setAlignment(Pos.TOP_LEFT);
+        setAlignment(Pos.BOTTOM_LEFT);
         dialog.getStyleClass().addAll("reply-label", "black-green-label");
+        if (replyType.getStyleClass() != null) {
+            dialog.getStyleClass().addAll("palette-reply", replyType.getStyleClass());
+        }
     }
 
     /**
@@ -68,8 +72,20 @@ public class DialogBox extends HBox {
      * @return Duke reply dialog box
      */
     public static DialogBox getDukeDialog(String text, Image img) {
+        return getDukeDialog(text, img, ReplyType.DEFAULT);
+    }
+
+    /**
+     * Creates a categorized reply from Duke.
+     *
+     * @param text reply to display
+     * @param img image representing Duke
+     * @param replyType visual category of the reply
+     * @return Duke reply dialog box
+     */
+    public static DialogBox getDukeDialog(String text, Image img, ReplyType replyType) {
         var db = new DialogBox(text, img);
-        db.flip();
+        db.flip(replyType);
         return db;
     }
 }

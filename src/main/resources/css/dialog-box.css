@@ -35,6 +35,48 @@
     -fx-text-fill: #00c000;
 }
 
+.palette-reply {
+    -fx-background-color: reply-background;
+    -fx-border-color: derive(reply-background, -0.8);
+    -fx-text-fill: ladder(reply-background, white 49%, black 50%);
+}
+
+.task-created-label {
+    reply-background: #ffb000;
+}
+
+.list-label {
+    reply-background: #e6e6e6;
+}
+
+.find-label {
+    reply-background: #c77dff;
+}
+
+.mark-completed-label {
+    reply-background: #39ff14;
+}
+
+.unmarked-label {
+    reply-background: #ffd166;
+}
+
+.deleted-label {
+    reply-background: #ff6b6b;
+}
+
+.date-query-label {
+    reply-background: #4cc9f0;
+}
+
+.error-label {
+    reply-background: #ff1744;
+}
+
+.empty-label {
+    reply-background: #8d99ae;
+}
+
 #displayPicture {
     /* Shadow effect on image. */
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 5, 5);

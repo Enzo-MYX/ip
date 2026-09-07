@@ -56,26 +56,54 @@ public class TaskCommandProcessor {
             return new CommandResult("", false);
         }
         String response;
+        ReplyType replyType;
         if (lowerCaseInput.trim().equals("list")) {
             response = "VERY WELL. HERE IS YOUR LIST:\n" + taskList.read();
+            replyType = ReplyType.LIST;
         } else if (lowerCaseInput.trim().equals("find") || lowerCaseInput.startsWith("find ")) {
             response = taskList.find(input.substring(4).trim());
+            replyType = ReplyType.FIND;
         } else if (lowerCaseInput.startsWith("date ")) {
             response = handleDate(input);
+            replyType = ReplyType.DATE_QUERY;
         } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
             response = handleMark(input);
+            replyType = lowerCaseInput.startsWith("unmark ")
+                    ? ReplyType.UNMARKED
+                    : ReplyType.MARK_COMPLETED;
         } else if (lowerCaseInput.startsWith("todo ")) {
             response = taskList.add(new Todo(input.substring(5).trim()));
+            replyType = ReplyType.TASK_CREATED;
         } else if (lowerCaseInput.startsWith("deadline ")) {
             response = addDeadline(input);
+            replyType = ReplyType.TASK_CREATED;
         } else if (lowerCaseInput.startsWith("event ")) {
             response = addEvent(input);
+            replyType = ReplyType.TASK_CREATED;
         } else if (lowerCaseInput.startsWith("delete ")) {
             response = handleDelete(input);
+            replyType = ReplyType.DELETED;
         } else {
             response = "WELL, THAT IS NO LONGER A COMMAND.";
+            replyType = ReplyType.ERROR;
         }
-        return new CommandResult(response, true);
+        return new CommandResult(response, true, adjustTypeForUnsuccessfulReply(response, replyType));
+    }
+
+    /** Returns an empty or error style when an otherwise typed operation is unsuccessful. */
+    private ReplyType adjustTypeForUnsuccessfulReply(String response, ReplyType successfulType) {
+        if (response.contains("NOTHING TO READ")
+                || response.contains("NOTHING TO LOCATE")
+                || response.contains("NOTHING THAT CONFORMS")
+                || response.contains("NOTHING OF CONCERN")) {
+            return ReplyType.EMPTY;
+        }
+        if (response.startsWith("BUT,")
+                || response.startsWith("IT IS BARREN")
+                || response.startsWith("YOU MUST BE")) {
+            return ReplyType.ERROR;
+        }
+        return successfulType;
     }
 
     /**

@@ -65,7 +65,7 @@ public class MainWindow extends AnchorPane {
                 : Secret.getClosingDialogue();
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
-                DialogBox.getDukeDialog(response, dukeImage)
+                DialogBox.getDukeDialog(response, dukeImage, result.replyType())
         );
         userInput.clear();
 
