@@ -50,6 +50,7 @@ public class TaskList {
     public void load() {
         TaskStorage.load(this, capacity, saveFile);
         itemCount = items.size();
+        assertConsistentState();
     }
 
     /** Saves all current tasks and completion states to the configured file. */
@@ -63,6 +64,7 @@ public class TaskList {
      * @param item task to add
      */
     public String add(Item item) {
+        assertConsistentState();
         if (itemCount >= capacity) {
             return "BUT, THERE IS NO MORE MEMORY TO ALLOCATE.";
         }
@@ -72,6 +74,7 @@ public class TaskList {
 
         items.add(item);
         itemCount++;
+        assertConsistentState();
         save(); // persist after addition
         return "ORDER PROCESSED: " + item.toString().toUpperCase();
     }
@@ -82,6 +85,7 @@ public class TaskList {
      * @return formatted task list, or a message when the list is empty
      */
     public String read() {
+        assertConsistentState();
         if (itemCount == 0) {
             return "BUT, THERE WAS NOTHING TO READ.";
         }
@@ -124,6 +128,7 @@ public class TaskList {
      * @param isReverse {@code true} to unmark the task, or {@code false} to mark it
      */
     public String mark(int index, boolean isReverse) {
+        assertConsistentState();
         if (index < 0 || index >= itemCount) {
             return "BUT, IT WAS NEVER THERE IN THE FIRST PLACE.";
         }
@@ -139,6 +144,7 @@ public class TaskList {
      * @param index zero-based index of the task to remove
      */
     public String delete(int index) {
+        assertConsistentState();
         if (index < 0 || index >= itemCount) {
             return "BUT, IT WAS NEVER THERE IN THE FIRST PLACE.";
         }
@@ -146,6 +152,7 @@ public class TaskList {
         String deletedItem = items.get(index).toString();
         items.remove(index);
         itemCount--;
+        assertConsistentState();
         save(); // persist after deletion
         return deletedItem + "\nIT WAS AS IF IT WAS NEVER THERE\nAT ALL.";
     }
@@ -166,5 +173,11 @@ public class TaskList {
             response.append(item).append(System.lineSeparator());
         }
         return response.toString().stripTrailing();
+    }
+
+    /** Verifies that the stored task count agrees with the backing collection. */
+    private void assertConsistentState() {
+        assert itemCount == items.size()
+                : "Item count must match the number of stored items";
     }
 }

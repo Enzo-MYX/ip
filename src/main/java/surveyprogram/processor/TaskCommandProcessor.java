@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
@@ -112,6 +113,8 @@ public class TaskCommandProcessor {
      * @param input complete date command entered by the user
      */
     private String handleDate(String input) {
+        assert input.toLowerCase(Locale.ROOT).startsWith("date ")
+                : "Date handler requires a date command";
         String[] parts = input.split(" ", 2);
         if (parts.length < 2) {
             return "BUT, THERE WAS NOT A DATE TO CHECK.";
@@ -132,6 +135,9 @@ public class TaskCommandProcessor {
      * @param input complete mark or unmark command entered by the user
      */
     private String handleMark(String input) {
+        String normalizedInput = input.toLowerCase(Locale.ROOT);
+        assert normalizedInput.startsWith("mark ") || normalizedInput.startsWith("unmark ")
+                : "Mark handler requires a mark or unmark command";
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
             return "BUT, THE OBJECT IS NOT SPECIFIED.";
@@ -150,6 +156,8 @@ public class TaskCommandProcessor {
      * @param input complete delete command entered by the user
      */
     private String handleDelete(String input) {
+        assert input.toLowerCase(Locale.ROOT).startsWith("delete ")
+                : "Delete handler requires a delete command";
         String[] commandParts = input.trim().split("\\s+", 2);
         if (commandParts.length < 2) {
             return "BUT, THE OBJECT IS NOT SPECIFIED.";
@@ -168,6 +176,8 @@ public class TaskCommandProcessor {
      * @param input complete deadline command entered by the user
      */
     private String addDeadline(String input) {
+        assert input.toLowerCase(Locale.ROOT).startsWith("deadline ")
+                : "Deadline handler requires a deadline command";
         String[] parts = input.substring(9).split("(?i) /by ", 2);
         if (parts.length == 2) {
             try {
@@ -186,6 +196,8 @@ public class TaskCommandProcessor {
      * @param input complete event command entered by the user
      */
     private String addEvent(String input) {
+        assert input.toLowerCase(Locale.ROOT).startsWith("event ")
+                : "Event handler requires an event command";
         String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
         if (parts.length == 3) {
             try {
