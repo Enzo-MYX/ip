@@ -6,6 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
@@ -212,20 +214,34 @@ public class TaskCommandProcessor {
      * @throws DateTimeParseException if none of the patterns match
      */
     private LocalDateTime parseDateTime(String dateTimeString) throws DateTimeParseException {
-        for (DateTimeFormatter formatter : DATETIME_FORMATTERS) {
-            try {
-                return LocalDateTime.parse(dateTimeString, formatter);
-            } catch (DateTimeParseException exception) {
-                // try next formatter
-            }
+        Stream<LocalDateTime> parsedDateTimes = DATETIME_FORMATTERS.stream()
+                .map(formatter -> tryParseDateTime(dateTimeString, formatter))
+                .flatMap(Optional::stream);
+        Stream<LocalDateTime> parsedDates = DATE_FORMATTERS.stream()
+                .map(formatter -> tryParseDate(dateTimeString, formatter))
+                .flatMap(Optional::stream);
+
+        return Stream.concat(parsedDateTimes, parsedDates)
+                .findFirst()
+                .orElseThrow(() -> new DateTimeParseException(
+                        "Unable to parse: " + dateTimeString, dateTimeString, 0));
+    }
+
+    /** Returns the parsed date-time, or an empty result when the format does not match. */
+    private Optional<LocalDateTime> tryParseDateTime(String dateTimeString, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDateTime.parse(dateTimeString, formatter));
+        } catch (DateTimeParseException exception) {
+            return Optional.empty();
         }
-        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-            try {
-                return LocalDate.parse(dateTimeString, formatter).atStartOfDay();
-            } catch (DateTimeParseException exception) {
-                // try next formatter
-            }
+    }
+
+    /** Returns the parsed date at midnight, or an empty result when the format does not match. */
+    private Optional<LocalDateTime> tryParseDate(String dateString, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDate.parse(dateString, formatter).atStartOfDay());
+        } catch (DateTimeParseException exception) {
+            return Optional.empty();
         }
-        throw new DateTimeParseException("Unable to parse: " + dateTimeString, dateTimeString, 0);
     }
 }

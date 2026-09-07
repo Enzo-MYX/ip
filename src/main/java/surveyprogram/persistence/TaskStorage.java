@@ -142,7 +142,6 @@ public class TaskStorage {
      */
     public static void save(TaskList taskList, Path saveFile) {
         ArrayList<Item> items = taskList.getList();
-        int itemCount = items.size();
         try {
             File file = saveFile.toFile();
             File parent = file.getParentFile();
@@ -150,9 +149,9 @@ public class TaskStorage {
                 parent.mkdirs(); // ensure directory exists
             }
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                for (int i = 0; i < itemCount; i++) {
-                    writer.println(itemToFileString(items.get(i)));
-                }
+                items.stream()
+                        .map(TaskStorage::itemToFileString)
+                        .forEach(writer::println);
             }
         } catch (IOException exception) {
             Secret.error(false);
