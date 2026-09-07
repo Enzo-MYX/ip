@@ -10,9 +10,13 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import surveyprogram.object.AfterTask;
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
 import surveyprogram.object.Item;
@@ -49,15 +53,45 @@ public class TaskStorage {
             return; // no previous data
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            List<String> records = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
-                Optional<Item> parsedItem = parseItem(line);
-                if (parsedItem.isEmpty()) {
+                records.add(line);
+            }
+
+            Map<String, Item> itemsById = new HashMap<>();
+            List<Item> parsedItems = new ArrayList<>();
+            for (int index = 0; index < records.size(); index++) {
+                Optional<Item> parsedItem = parseIndependentItem(records.get(index));
+                Item item = parsedItem.orElse(null);
+                parsedItems.add(item);
+                if (item != null) {
+                    itemsById.put(item.getId(), item);
+                }
+            }
+
+            boolean wasRelationshipResolved;
+            do {
+                wasRelationshipResolved = false;
+                for (int index = 0; index < records.size(); index++) {
+                    if (parsedItems.get(index) != null) {
+                        continue;
+                    }
+                    Optional<Item> parsedItem = parseDependentItem(records.get(index), itemsById);
+                    if (parsedItem.isPresent()) {
+                        parsedItems.set(index, parsedItem.get());
+                        wasRelationshipResolved = true;
+                    }
+                }
+            } while (wasRelationshipResolved);
+
+            for (Item item : parsedItems) {
+                if (item == null) {
                     continue;
                 }
-                if (!taskList.restore(parsedItem.get())) {
+                if (!taskList.restore(item)) {
                     Secret.error(true);
-                    break;
+                    return;
                 }
             }
         } catch (IOException exception) {
@@ -66,37 +100,82 @@ public class TaskStorage {
     }
 
     /** Returns a task reconstructed from a valid saved record. */
-    private static Optional<Item> parseItem(String line) {
+    private static Optional<Item> parseIndependentItem(String line) {
         String[] parts = line.split("\\|");
         if (parts.length < 3) {
             return Optional.empty();
         }
 
         try {
-            Item item = createItem(parts);
+            boolean isLegacyRecord = isDoneMarker(parts[1]);
+            int doneIndex = isLegacyRecord ? 1 : 2;
+            int descriptionIndex = isLegacyRecord ? 2 : 3;
+            String id = isLegacyRecord ? null : parts[1].trim();
+            Item item = createIndependentItem(parts, id, descriptionIndex);
             if (item == null) {
                 return Optional.empty();
             }
-            item.setDone(parts[1].trim().equals("y"));
+            item.setDone(parts[doneIndex].trim().equals("y"));
             return Optional.of(item);
-        } catch (DateTimeParseException exception) {
+        } catch (DateTimeParseException | ArrayIndexOutOfBoundsException exception) {
             return Optional.empty();
         }
     }
 
-    /** Returns the task encoded by the split record, or {@code null} for an unsupported record. */
-    private static Item createItem(String[] parts) {
+    /** Returns a non-dependent task encoded by the record, or {@code null}. */
+    private static Item createIndependentItem(String[] parts, String id, int descriptionIndex) {
         String type = parts[0].trim();
-        String description = parts[2].trim();
+        String description = parts[descriptionIndex].trim();
+        int detailsIndex = descriptionIndex + 1;
         return switch (type) {
-            case "T" -> new Todo(description);
-            case "D" -> parts.length < 4 ? null : new Deadline(description,
-                    LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER));
-            case "E" -> parts.length < 5 ? null : new Event(description,
-                    LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER),
-                    LocalDateTime.parse(parts[4].trim(), FILE_FORMATTER));
+            case "T" -> id == null ? new Todo(description) : new Todo(id, description);
+            case "D" -> parts.length <= detailsIndex ? null : createDeadline(
+                    id, description, parts[detailsIndex].trim());
+            case "E" -> parts.length <= detailsIndex + 1 ? null : createEvent(
+                    id, description, parts[detailsIndex].trim(), parts[detailsIndex + 1].trim());
+            case "A" -> parts.length <= detailsIndex + 1
+                    || !parts[detailsIndex].trim().equals("TIME") ? null
+                    : new AfterTask(id, description,
+                            LocalDateTime.parse(parts[detailsIndex + 1].trim(), FILE_FORMATTER));
             default -> null;
         };
+    }
+
+    /** Returns a deadline with an optional restored identifier. */
+    private static Deadline createDeadline(String id, String description, String dateTime) {
+        LocalDateTime by = LocalDateTime.parse(dateTime, FILE_FORMATTER);
+        return id == null ? new Deadline(description, by) : new Deadline(id, description, by);
+    }
+
+    /** Returns an event with an optional restored identifier. */
+    private static Event createEvent(String id, String description, String fromText, String toText) {
+        LocalDateTime from = LocalDateTime.parse(fromText, FILE_FORMATTER);
+        LocalDateTime to = LocalDateTime.parse(toText, FILE_FORMATTER);
+        return id == null ? new Event(description, from, to) : new Event(id, description, from, to);
+    }
+
+    /** Returns a parent-dependent task when its saved parent can be resolved. */
+    private static Optional<Item> parseDependentItem(String line, Map<String, Item> itemsById) {
+        String[] parts = line.split("\\|");
+        if (parts.length < 6 || !parts[0].trim().equals("A")
+                || !parts[4].trim().equals("TASK")) {
+            return Optional.empty();
+        }
+
+        Item parent = itemsById.get(parts[5].trim());
+        if (parent == null) {
+            return Optional.empty();
+        }
+        AfterTask item = new AfterTask(parts[1].trim(), parts[3].trim(), parent);
+        item.setDone(parts[2].trim().equals("y"));
+        itemsById.put(item.getId(), item);
+        return Optional.of(item);
+    }
+
+    /** Returns whether a field is a legacy completion marker. */
+    private static boolean isDoneMarker(String field) {
+        String marker = field.trim();
+        return marker.equals("y") || marker.equals("n");
     }
 
     /**
@@ -108,22 +187,31 @@ public class TaskStorage {
     private static String itemToFileString(Item item) {
         String type;
         String done = item.isDone() ? "y" : "n";
-        if (item instanceof Todo) {
+        String prefix = item.getId() + " | " + done + " | ";
+        if (item instanceof AfterTask) {
+            AfterTask afterTask = (AfterTask) item;
+            if (afterTask.hasParent()) {
+                return "A | " + prefix + afterTask.getName() + " | TASK | "
+                        + afterTask.getParent().getId();
+            }
+            return "A | " + prefix + afterTask.getName() + " | TIME | "
+                    + afterTask.getReleaseAt().format(FILE_FORMATTER);
+        } else if (item instanceof Todo) {
             type = "T";
-            return type + " | " + done + " | " + item.getName();
+            return type + " | " + prefix + item.getName();
         } else if (item instanceof Deadline) {
             type = "D";
             Deadline deadline = (Deadline) item;
-            return type + " | " + done + " | " + deadline.getName() + " | "
+            return type + " | " + prefix + deadline.getName() + " | "
                     + deadline.getBy().format(FILE_FORMATTER);
         } else if (item instanceof Event) {
             type = "E";
             Event event = (Event) item;
-            return type + " | " + done + " | " + event.getName() + " | "
+            return type + " | " + prefix + event.getName() + " | "
                     + event.getFrom().format(FILE_FORMATTER) + " | "
                     + event.getTo().format(FILE_FORMATTER);
         } else {
-            return "? | " + done + " | " + item.getName();
+            return "? | " + prefix + item.getName();
         }
     }
 

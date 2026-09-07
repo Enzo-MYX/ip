@@ -2,6 +2,7 @@ package surveyprogram.object;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -98,6 +99,20 @@ public class TaskList {
     }
 
     /**
+     * Adds a task that becomes available after an existing task is complete.
+     *
+     * @param description dependent task description
+     * @param parentIndex zero-based index of the parent task
+     * @return result of validating and adding the dependent task
+     */
+    public TaskListResult addAfterTask(String description, int parentIndex) {
+        if (parentIndex < 0 || parentIndex >= itemCount) {
+            return error("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
+        }
+        return add(new AfterTask(description, items.get(parentIndex)));
+    }
+
+    /**
      * Returns all stored tasks in their insertion order.
      *
      * @return formatted task list, or a message when the list is empty
@@ -149,7 +164,16 @@ public class TaskList {
             return error("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
         }
 
-        String response = isReverse ? items.get(index).undo() : items.get(index).mark();
+        Item selectedItem = items.get(index);
+        if (selectedItem instanceof AfterTask afterTask
+                && !afterTask.isAvailable(LocalDateTime.now())) {
+            return error("BUT, ITS CONDITIONS ARE NOT SATISFIED.");
+        }
+
+        String response = isReverse ? selectedItem.undo() : selectedItem.mark();
+        if (isReverse && !selectedItem.isDone()) {
+            unmarkDescendants(selectedItem);
+        }
         save(); // persist status change
         return success(response);
     }
@@ -165,12 +189,17 @@ public class TaskList {
             return error("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
         }
 
-        String deletedItem = items.get(index).toString();
-        items.remove(index);
-        itemCount--;
+        Item selectedItem = items.get(index);
+        String deletedItem = selectedItem.toString();
+        int originalCount = itemCount;
+        removeWithDescendants(selectedItem);
+        int deletedCount = originalCount - itemCount;
         assertConsistentState();
         save(); // persist after deletion
-        return success(deletedItem + "\nIT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
+        String cascadeMessage = deletedCount > 1
+                ? String.format("\nAS WITH ITS %d CHILDREN.", deletedCount - 1)
+                : "";
+        return success(deletedItem + "\nIT WAS AS IF IT WAS NEVER THERE\nAT ALL." + cascadeMessage);
     }
 
     /**
@@ -200,6 +229,31 @@ public class TaskList {
 
     private TaskListResult error(String response) {
         return new TaskListResult(response, TaskListResult.Status.ERROR);
+    }
+
+    /** Marks every descendant of a newly incomplete parent as incomplete. */
+    private void unmarkDescendants(Item parent) {
+        items.stream()
+                .filter(item -> item instanceof AfterTask)
+                .map(item -> (AfterTask) item)
+                .filter(afterTask -> afterTask.getParent() == parent)
+                .forEach(afterTask -> {
+                    afterTask.setDone(false);
+                    unmarkDescendants(afterTask);
+                });
+    }
+
+    /** Removes a task and all tasks that transitively depend on it. */
+    private void removeWithDescendants(Item parent) {
+        List<Item> children = items.stream()
+                .filter(item -> item instanceof AfterTask)
+                .map(item -> (AfterTask) item)
+                .filter(afterTask -> afterTask.getParent() == parent)
+                .map(afterTask -> (Item) afterTask)
+                .toList();
+        children.forEach(this::removeWithDescendants);
+        items.remove(parent);
+        itemCount--;
     }
 
     /** Verifies that the stored task count agrees with the backing collection. */

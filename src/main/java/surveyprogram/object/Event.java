@@ -28,6 +28,13 @@ public class Event extends Item {
         this.to = to;
     }
 
+    /** Creates an event restored with a stable identifier. */
+    public Event(String id, String description, LocalDateTime from, LocalDateTime to) {
+        super(id, description);
+        this.from = from;
+        this.to = to;
+    }
+
     /**
      * Returns the event's display form, including its range and completion state.
      *

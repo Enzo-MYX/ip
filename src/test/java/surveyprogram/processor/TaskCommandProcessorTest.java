@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import surveyprogram.object.AfterTask;
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
 import surveyprogram.object.Item;
@@ -57,6 +58,26 @@ class TaskCommandProcessorTest {
 
         Deadline deadline = assertInstanceOf(Deadline.class, list.addedItems.getFirst());
         assertEquals(LocalDateTime.of(2026, 8, 24, 0, 0), deadline.getBy());
+    }
+
+    @Test
+    void process_pendingAfterDateWithoutTime_defaultsToStartOfDay() {
+        RecordingList list = new RecordingList();
+
+        new TaskCommandProcessor(list).process("pending publish /after 2026-9-24");
+
+        AfterTask task = assertInstanceOf(AfterTask.class, list.addedItems.getFirst());
+        assertEquals(LocalDateTime.of(2026, 9, 24, 0, 0), task.getReleaseAt());
+    }
+
+    @Test
+    void process_pendingAfterTask_routesDescriptionAndOneBasedIndex() {
+        RecordingList list = new RecordingList();
+
+        new TaskCommandProcessor(list).process("pending return book /aftertask 3");
+
+        assertEquals("return book", list.afterTaskDescription);
+        assertEquals(2, list.parentIndex);
     }
 
     @Test
@@ -170,6 +191,8 @@ class TaskCommandProcessorTest {
         private int deletedIndex = Integer.MIN_VALUE;
         private LocalDate requestedDate;
         private String findKeyword;
+        private String afterTaskDescription;
+        private int parentIndex;
 
         RecordingList() {
             super(100);
@@ -179,6 +202,13 @@ class TaskCommandProcessorTest {
         public TaskListResult add(Item item) {
             addedItems.add(item);
             return success("added");
+        }
+
+        @Override
+        public TaskListResult addAfterTask(String description, int parentIndex) {
+            afterTaskDescription = description;
+            this.parentIndex = parentIndex;
+            return success("added dependent task");
         }
 
         @Override
