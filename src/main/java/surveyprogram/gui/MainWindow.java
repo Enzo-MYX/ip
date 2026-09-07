@@ -58,6 +58,8 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
+        assert commandProcessor != null
+                : "Command processor must be initialized before accepting input";
         String input = userInput.getText();
         CommandResult result = commandProcessor.process(input);
         String response = result.shouldContinue()
