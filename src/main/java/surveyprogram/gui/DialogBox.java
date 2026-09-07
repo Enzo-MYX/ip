@@ -46,13 +46,27 @@ public class DialogBox extends HBox {
         Collections.reverse(tmp);
         getChildren().setAll(tmp);
         setAlignment(Pos.TOP_LEFT);
-        dialog.getStyleClass().add("reply-label");
+        dialog.getStyleClass().addAll("reply-label", "black-green-label");
     }
 
+    /**
+     * Creates a dialog box for a message entered by the user.
+     *
+     * @param text message to display
+     * @param img image representing the user
+     * @return user dialog box
+     */
     public static DialogBox getUserDialog(String text, Image img) {
         return new DialogBox(text, img);
     }
 
+    /**
+     * Creates a dialog box for a reply from Duke.
+     *
+     * @param text reply to display
+     * @param img image representing Duke
+     * @return Duke reply dialog box
+     */
     public static DialogBox getDukeDialog(String text, Image img) {
         var db = new DialogBox(text, img);
         db.flip();
