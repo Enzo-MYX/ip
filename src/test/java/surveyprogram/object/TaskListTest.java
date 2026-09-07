@@ -21,13 +21,15 @@ class TaskListTest {
     void add_emptyAndOverCapacity_rejectsInvalidItems() {
         TaskList list = newList(1);
 
-        String emptyOutput = list.add(new Todo("   "));
+        TaskListResult emptyResult = list.add(new Todo("   "));
         list.add(new Todo("first"));
-        String fullOutput = list.add(new Todo("second"));
+        TaskListResult fullResult = list.add(new Todo("second"));
 
         assertEquals(1, list.getList().size());
-        assertTrue(emptyOutput.contains("IT IS BARREN AND CANNOT BE CREATED."));
-        assertTrue(fullOutput.contains("BUT, THERE IS NO MORE MEMORY TO ALLOCATE."));
+        assertEquals(TaskListResult.Status.ERROR, emptyResult.status());
+        assertTrue(emptyResult.response().contains("IT IS BARREN AND CANNOT BE CREATED."));
+        assertEquals(TaskListResult.Status.ERROR, fullResult.status());
+        assertTrue(fullResult.response().contains("BUT, THERE IS NO MORE MEMORY TO ALLOCATE."));
     }
 
     @Test
@@ -36,10 +38,11 @@ class TaskListTest {
         list.add(new Todo("first"));
 
         list.mark(0, false);
-        String invalidOutput = list.mark(-1, false);
+        TaskListResult invalidResult = list.mark(-1, false);
 
         assertTrue(list.getList().getFirst().isDone());
-        assertTrue(invalidOutput.contains("BUT, IT WAS NEVER THERE IN THE FIRST PLACE."));
+        assertEquals(TaskListResult.Status.ERROR, invalidResult.status());
+        assertTrue(invalidResult.response().contains("BUT, IT WAS NEVER THERE IN THE FIRST PLACE."));
     }
 
     @Test
@@ -49,21 +52,24 @@ class TaskListTest {
         list.add(new Todo("second"));
 
         list.delete(0);
-        String invalidOutput = list.delete(5);
+        TaskListResult invalidResult = list.delete(5);
 
         assertEquals(1, list.getList().size());
         assertEquals("second", list.getList().getFirst().getName());
-        assertTrue(invalidOutput.contains("BUT, IT WAS NEVER THERE IN THE FIRST PLACE."));
+        assertEquals(TaskListResult.Status.ERROR, invalidResult.status());
+        assertTrue(invalidResult.response().contains("BUT, IT WAS NEVER THERE IN THE FIRST PLACE."));
     }
 
     @Test
     void read_emptyAndPopulatedList_returnsExpectedNumbering() {
         TaskList list = newList(2);
-        assertTrue(list.read().contains("BUT, THERE WAS NOTHING TO READ."));
+        TaskListResult emptyResult = list.read();
+        assertEquals(TaskListResult.Status.EMPTY, emptyResult.status());
+        assertTrue(emptyResult.response().contains("BUT, THERE WAS NOTHING TO READ."));
 
         list.add(new Todo("first"));
         list.add(new Todo("second"));
-        String output = list.read();
+        String output = list.read().response();
 
         assertTrue(output.contains("1.[T][ ] first"));
         assertTrue(output.contains("2.[T][ ] second"));
@@ -76,16 +82,20 @@ class TaskListTest {
         list.add(new Todo("buy groceries"));
         list.add(new Deadline("return BOOK", LocalDateTime.of(2026, 6, 6, 0, 0)));
 
-        String matchingOutput = list.find("book");
-        String missingOutput = list.find("phone");
-        String blankOutput = list.find("   ");
+        TaskListResult matchingResult = list.find("book");
+        TaskListResult missingResult = list.find("phone");
+        TaskListResult blankResult = list.find("   ");
+        String matchingOutput = matchingResult.response();
 
         assertTrue(matchingOutput.contains("VERY WELL. HERE IS YOUR MATCHING LIST:"));
         assertTrue(matchingOutput.contains("1.[T][ ] read book"));
         assertTrue(matchingOutput.contains("2.[D][ ] return BOOK"));
         assertFalse(matchingOutput.contains("buy groceries"));
-        assertTrue(missingOutput.contains("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM."));
-        assertTrue(blankOutput.contains("BUT, THERE WAS NOTHING TO LOCATE."));
+        assertEquals(TaskListResult.Status.SUCCESS, matchingResult.status());
+        assertEquals(TaskListResult.Status.EMPTY, missingResult.status());
+        assertTrue(missingResult.response().contains("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM."));
+        assertEquals(TaskListResult.Status.EMPTY, blankResult.status());
+        assertTrue(blankResult.response().contains("BUT, THERE WAS NOTHING TO LOCATE."));
     }
 
     @Test
@@ -96,13 +106,13 @@ class TaskListTest {
         list.add(new Event("trip", LocalDateTime.of(2026, 8, 23, 8, 0),
                 LocalDateTime.of(2026, 8, 25, 18, 0)));
 
-        String output = list.listByDate(LocalDate.of(2026, 8, 24));
+        String output = list.listByDate(LocalDate.of(2026, 8, 24)).response();
 
         assertFalse(output.contains("undated"));
         assertTrue(output.contains("due"));
         assertTrue(output.contains("trip"));
         assertTrue(list.listByDate(LocalDate.of(2026, 8, 26))
-                .contains("NOTHING OF CONCERN"));
+                .response().contains("NOTHING OF CONCERN"));
     }
 
     @Test
