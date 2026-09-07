@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import surveyprogram.persistence.TaskStorage;
 
@@ -105,11 +107,10 @@ public class TaskList {
         if (itemCount == 0) {
             return empty("BUT, THERE WAS NOTHING TO READ.");
         }
-        StringBuilder response = new StringBuilder();
-        for (int i = 0; i < itemCount; i++) {
-            response.append(String.format("%d.%s%n", i + 1, items.get(i)));
-        }
-        return success(response.toString().stripTrailing());
+        String numberedItems = IntStream.range(0, itemCount)
+                .mapToObj(index -> String.format("%d.%s", index + 1, items.get(index)))
+                .collect(Collectors.joining(System.lineSeparator()));
+        return success(numberedItems);
     }
 
     /**
@@ -130,11 +131,10 @@ public class TaskList {
         if (matchingItems.isEmpty()) {
             return empty("BUT, THERE WAS NOTHING THAT CONFORMS TO THE TERM.");
         }
-        StringBuilder response = new StringBuilder("VERY WELL. HERE IS YOUR MATCHING LIST:\n");
-        for (int i = 0; i < matchingItems.size(); i++) {
-            response.append(String.format("%d.%s%n", i + 1, matchingItems.get(i)));
-        }
-        return success(response.toString().stripTrailing());
+        String numberedItems = IntStream.range(0, matchingItems.size())
+                .mapToObj(index -> String.format("%d.%s", index + 1, matchingItems.get(index)))
+                .collect(Collectors.joining(System.lineSeparator()));
+        return success("VERY WELL. HERE IS YOUR MATCHING LIST:\n" + numberedItems);
     }
 
     /**
@@ -184,11 +184,10 @@ public class TaskList {
             return empty("WELL, THERE IS NOTHING OF CONCERN ON THIS SPECIFIC DATE.");
         }
 
-        StringBuilder response = new StringBuilder("WE SIT ON THE PRECIPICE OF THESE EVENTS:\n\n");
-        for (Item item : matchingItems) {
-            response.append(item).append(System.lineSeparator());
-        }
-        return success(response.toString().stripTrailing());
+        String formattedItems = matchingItems.stream()
+                .map(Item::toString)
+                .collect(Collectors.joining(System.lineSeparator()));
+        return success("WE SIT ON THE PRECIPICE OF THESE EVENTS:\n\n" + formattedItems);
     }
 
     private TaskListResult success(String response) {
