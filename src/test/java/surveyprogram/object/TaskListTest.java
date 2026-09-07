@@ -135,6 +135,55 @@ class TaskListTest {
         assertTrue(restored.getList().get(1).isDone());
     }
 
+    @Test
+    void afterTask_parentCompletionAndReversal_controlsDependentTask() {
+        TaskList list = newList(3);
+        list.add(new Todo("parent"));
+        list.addAfterTask("child", 0);
+
+        TaskListResult lockedResult = list.mark(1, false);
+        list.mark(0, false);
+        list.mark(1, false);
+        list.mark(0, true);
+
+        assertEquals(TaskListResult.Status.ERROR, lockedResult.status());
+        assertFalse(list.getList().get(0).isDone());
+        assertFalse(list.getList().get(1).isDone());
+    }
+
+    @Test
+    void delete_parent_removesAllDescendants() {
+        TaskList list = newList(4);
+        list.add(new Todo("parent"));
+        list.addAfterTask("child", 0);
+        list.addAfterTask("grandchild", 1);
+        list.add(new Todo("unrelated"));
+
+        TaskListResult result = list.delete(0);
+
+        assertEquals(1, list.getList().size());
+        assertEquals("unrelated", list.getList().getFirst().getName());
+        assertTrue(result.response().contains("AS WITH ITS 2 CHILDREN."));
+    }
+
+    @Test
+    void load_parentDependentTask_restoresRelationship() {
+        Path saveFile = temporaryDirectory.resolve("after/tasks.txt");
+        TaskList original = new TaskList(3, saveFile);
+        original.add(new Todo("parent"));
+        original.addAfterTask("child", 0);
+        original.add(new Todo("later unrelated task"));
+
+        TaskList restored = new TaskList(3, saveFile);
+        restored.load();
+        restored.mark(0, false);
+        TaskListResult result = restored.mark(1, false);
+
+        assertEquals("child", restored.getList().get(1).getName());
+        assertEquals(TaskListResult.Status.SUCCESS, result.status());
+        assertTrue(restored.getList().get(1).isDone());
+    }
+
     private TaskList newList(int capacity) {
         return new TaskList(capacity, temporaryDirectory.resolve("tasks.txt"));
     }

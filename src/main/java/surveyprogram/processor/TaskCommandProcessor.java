@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import surveyprogram.object.AfterTask;
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
 import surveyprogram.object.TaskList;
@@ -66,6 +67,7 @@ public class TaskCommandProcessor {
             case "todo" -> command.hasSeparator() ? addTodo(command.arguments()) : unknownCommand();
             case "deadline" -> command.hasSeparator() ? addDeadline(command.arguments()) : unknownCommand();
             case "event" -> command.hasSeparator() ? addEvent(command.arguments()) : unknownCommand();
+            case "pending" -> command.hasSeparator() ? addPending(command.arguments()) : unknownCommand();
             case "delete" -> command.hasSeparator() ? handleDelete(command.arguments()) : unknownCommand();
             default -> unknownCommand();
         };
@@ -187,6 +189,32 @@ public class TaskCommandProcessor {
                         ReplyType.TASK_CREATED);
             } catch (DateTimeParseException exception) {
                 // fall through
+            }
+        }
+        return mistakeWith(taskList.add(new Todo(arguments)));
+    }
+
+    /** Parses and adds a task whose availability depends on a time or another task. */
+    private CommandResult addPending(String arguments) {
+        String[] taskParts = arguments.split("(?i) /aftertask ", 2);
+        if (taskParts.length == 2) {
+            try {
+                int parentIndex = Integer.parseInt(taskParts[1].trim()) - 1;
+                return toCommandResult(taskList.addAfterTask(taskParts[0].trim(), parentIndex),
+                        ReplyType.TASK_CREATED);
+            } catch (NumberFormatException exception) {
+                return new CommandResult("BUT, IT IS INVALID.", true, ReplyType.ERROR);
+            }
+        }
+
+        String[] timeParts = arguments.split("(?i) /after ", 2);
+        if (timeParts.length == 2) {
+            try {
+                LocalDateTime releaseAt = parseDateTime(timeParts[1].trim());
+                return toCommandResult(taskList.add(new AfterTask(timeParts[0].trim(), releaseAt)),
+                        ReplyType.TASK_CREATED);
+            } catch (DateTimeParseException exception) {
+                // fall through to the existing dated-task fallback
             }
         }
         return mistakeWith(taskList.add(new Todo(arguments)));

@@ -13,6 +13,11 @@ public class Todo extends Item {
         super(description);
     }
 
+    /** Creates an undated task restored with a stable identifier. */
+    public Todo(String id, String description) {
+        super(id, description);
+    }
+
     /**
      * Returns the display form of this todo, including its type and completion markers.
      *

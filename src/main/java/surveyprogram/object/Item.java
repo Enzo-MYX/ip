@@ -1,11 +1,13 @@
 package surveyprogram.object;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Represents a task that can be marked as complete or incomplete.
  */
 public class Item {
+    private final String id;
     private final String name;
     private boolean isDone = false;
 
@@ -15,6 +17,17 @@ public class Item {
      * @param name task description
      */
     public Item(String name) {
+        this(UUID.randomUUID().toString(), name);
+    }
+
+    /**
+     * Creates an incomplete task with a stable identifier restored from storage.
+     *
+     * @param id stable task identifier
+     * @param name task description
+     */
+    public Item(String id, String name) {
+        this.id = id;
         this.name = name;
     }
 
@@ -63,6 +76,15 @@ public class Item {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Returns the stable identifier used to preserve task relationships.
+     *
+     * @return stable task identifier
+     */
+    public String getId() {
+        return id;
     }
 
     /**

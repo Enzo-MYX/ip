@@ -25,6 +25,12 @@ public class Deadline extends Item {
         this.by = by;
     }
 
+    /** Creates a deadline restored with a stable identifier. */
+    public Deadline(String id, String description, LocalDateTime by) {
+        super(id, description);
+        this.by = by;
+    }
+
     /**
      * Returns the deadline's display form, including its due date and completion state.
      *
