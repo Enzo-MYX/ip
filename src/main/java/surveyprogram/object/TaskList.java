@@ -66,7 +66,7 @@ public class TaskList {
     /** Loads tasks from the save file, if it exists. */
     public void load() {
         TaskStorage.load(this, saveFile);
-        assert itemCount == items.size();
+        assertConsistentState();
     }
 
     /** Saves all current tasks and completion states to the configured file. */
@@ -80,6 +80,7 @@ public class TaskList {
      * @param item task to add
      */
     public TaskListResult add(Item item) {
+        assertConsistentState();
         if (itemCount >= capacity) {
             return error("BUT, THERE IS NO MORE MEMORY TO ALLOCATE.");
         }
@@ -89,7 +90,7 @@ public class TaskList {
 
         items.add(item);
         itemCount++;
-        assert itemCount == items.size();
+        assertConsistentState();
         save(); // persist after addition
         return success("ORDER PROCESSED: " + item.toString().toUpperCase());
     }
@@ -100,6 +101,7 @@ public class TaskList {
      * @return formatted task list, or a message when the list is empty
      */
     public TaskListResult read() {
+        assertConsistentState();
         if (itemCount == 0) {
             return empty("BUT, THERE WAS NOTHING TO READ.");
         }
@@ -142,6 +144,7 @@ public class TaskList {
      * @param isReverse {@code true} to unmark the task, or {@code false} to mark it
      */
     public TaskListResult mark(int index, boolean isReverse) {
+        assertConsistentState();
         if (index < 0 || index >= itemCount) {
             return error("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
         }
@@ -157,6 +160,7 @@ public class TaskList {
      * @param index zero-based index of the task to remove
      */
     public TaskListResult delete(int index) {
+        assertConsistentState();
         if (index < 0 || index >= itemCount) {
             return error("BUT, IT WAS NEVER THERE IN THE FIRST PLACE.");
         }
@@ -164,7 +168,7 @@ public class TaskList {
         String deletedItem = items.get(index).toString();
         items.remove(index);
         itemCount--;
-        assert itemCount == items.size();
+        assertConsistentState();
         save(); // persist after deletion
         return success(deletedItem + "\nIT WAS AS IF IT WAS NEVER THERE\nAT ALL.");
     }
@@ -197,5 +201,11 @@ public class TaskList {
 
     private TaskListResult error(String response) {
         return new TaskListResult(response, TaskListResult.Status.ERROR);
+    }
+
+    /** Verifies that the stored task count agrees with the backing collection. */
+    private void assertConsistentState() {
+        assert itemCount == items.size()
+                : "Item count must match the number of stored items";
     }
 }
