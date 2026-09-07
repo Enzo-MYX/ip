@@ -24,7 +24,7 @@ class TaskStorageTest {
     void load_missingFile_leavesListEmpty() {
         TaskList list = new TaskList(10);
 
-        TaskStorage.load(list, 10, temporaryDirectory.resolve("missing.txt"));
+        TaskStorage.load(list, temporaryDirectory.resolve("missing.txt"));
 
         assertEquals(0, list.getList().size());
     }
@@ -36,11 +36,12 @@ class TaskStorageTest {
                 "missing separators",
                 "Q | n | unknown",
                 "D | n | missing date",
+                "D | n | invalid date | someday",
                 "T | y | restored todo",
                 "D | n | restored deadline | 2026-08-24T17:30:00"));
         TaskList list = new TaskList(10);
 
-        TaskStorage.load(list, 10, file);
+        TaskStorage.load(list, file);
 
         assertEquals(2, list.getList().size());
         assertInstanceOf(Todo.class, list.getList().get(0));
