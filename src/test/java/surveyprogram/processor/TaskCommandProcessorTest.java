@@ -16,6 +16,7 @@ import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
 import surveyprogram.object.Item;
 import surveyprogram.object.TaskList;
+import surveyprogram.object.TaskListResult;
 import surveyprogram.object.Todo;
 
 /** Tests command recognition, parsing, fallback behavior, and routing. */
@@ -175,40 +176,44 @@ class TaskCommandProcessorTest {
         }
 
         @Override
-        public String add(Item item) {
+        public TaskListResult add(Item item) {
             addedItems.add(item);
-            return "added";
+            return success("added");
         }
 
         @Override
-        public String read() {
+        public TaskListResult read() {
             isReadCalled = true;
-            return "list";
+            return success("list");
         }
 
         @Override
-        public String mark(int index, boolean isReverse) {
+        public TaskListResult mark(int index, boolean isReverse) {
             markedIndex = index;
             isReverseMark = isReverse;
-            return "marked";
+            return success("marked");
         }
 
         @Override
-        public String delete(int index) {
+        public TaskListResult delete(int index) {
             deletedIndex = index;
-            return "deleted";
+            return success("deleted");
         }
 
         @Override
-        public String listByDate(LocalDate date) {
+        public TaskListResult listByDate(LocalDate date) {
             requestedDate = date;
-            return "dated";
+            return success("dated");
         }
 
         @Override
-        public String find(String keyword) {
+        public TaskListResult find(String keyword) {
             findKeyword = keyword;
-            return "found";
+            return success("found");
+        }
+
+        private TaskListResult success(String response) {
+            return new TaskListResult(response, TaskListResult.Status.SUCCESS);
         }
     }
 }

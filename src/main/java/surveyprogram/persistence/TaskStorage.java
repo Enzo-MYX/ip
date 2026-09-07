@@ -9,7 +9,9 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Optional;
 
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
@@ -30,22 +32,18 @@ public class TaskStorage {
      * Loads tasks from the application's default save file.
      *
      * @param taskList task list that receives loaded items
-     * @param capacity maximum number of items to load
      */
-    public static void load(TaskList taskList, int capacity) {
-        load(taskList, capacity, SAVE_FILE);
+    public static void load(TaskList taskList) {
+        load(taskList, SAVE_FILE);
     }
 
     /**
      * Loads tasks from a specified file, skipping malformed or unknown records.
      *
      * @param taskList task list that receives loaded items
-     * @param capacity maximum number of items to load
      * @param saveFile file containing serialized task records
      */
-    public static void load(TaskList taskList, int capacity, Path saveFile) {
-        ArrayList<Item> items = taskList.getList();
-        int itemCount = 0;
+    public static void load(TaskList taskList, Path saveFile) {
         File file = saveFile.toFile();
         if (!file.exists()) {
             return; // no previous data
@@ -53,48 +51,52 @@ public class TaskStorage {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (itemCount >= capacity) {
-                    Secret.error(true);
-                    taskList.read();
-                    break;
-                }
-                String[] parts = line.split("\\|");
-                if (parts.length < 3) {
+                Optional<Item> parsedItem = parseItem(line);
+                if (parsedItem.isEmpty()) {
                     continue;
                 }
-                String type = parts[0].trim();
-                boolean isDone = parts[1].trim().equals("y");
-                String description = parts[2].trim();
-                Item item;
-                switch (type) {
-                    case "T":
-                        item = new Todo(description);
-                        break;
-                    case "D":
-                        if (parts.length < 4) {
-                            continue;
-                        }
-                        LocalDateTime deadline = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
-                        item = new Deadline(description, deadline);
-                        break;
-                    case "E":
-                        if (parts.length < 5) {
-                            continue;
-                        }
-                        LocalDateTime from = LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER);
-                        LocalDateTime to = LocalDateTime.parse(parts[4].trim(), FILE_FORMATTER);
-                        item = new Event(description, from, to);
-                        break;
-                    default:
-                        continue;
+                if (!taskList.restore(parsedItem.get())) {
+                    Secret.error(true);
+                    break;
                 }
-                item.setDone(isDone);
-                items.add(item);
-                itemCount++;
             }
         } catch (IOException exception) {
             Secret.error(false);
         }
+    }
+
+    /** Returns a task reconstructed from a valid saved record. */
+    private static Optional<Item> parseItem(String line) {
+        String[] parts = line.split("\\|");
+        if (parts.length < 3) {
+            return Optional.empty();
+        }
+
+        try {
+            Item item = createItem(parts);
+            if (item == null) {
+                return Optional.empty();
+            }
+            item.setDone(parts[1].trim().equals("y"));
+            return Optional.of(item);
+        } catch (DateTimeParseException exception) {
+            return Optional.empty();
+        }
+    }
+
+    /** Returns the task encoded by the split record, or {@code null} for an unsupported record. */
+    private static Item createItem(String[] parts) {
+        String type = parts[0].trim();
+        String description = parts[2].trim();
+        return switch (type) {
+            case "T" -> new Todo(description);
+            case "D" -> parts.length < 4 ? null : new Deadline(description,
+                    LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER));
+            case "E" -> parts.length < 5 ? null : new Event(description,
+                    LocalDateTime.parse(parts[3].trim(), FILE_FORMATTER),
+                    LocalDateTime.parse(parts[4].trim(), FILE_FORMATTER));
+            default -> null;
+        };
     }
 
     /**
@@ -141,7 +143,7 @@ public class TaskStorage {
      * @param saveFile destination for serialized task records
      */
     public static void save(TaskList taskList, Path saveFile) {
-        ArrayList<Item> items = taskList.getList();
+        List<Item> items = taskList.getList();
         int itemCount = items.size();
         try {
             File file = saveFile.toFile();

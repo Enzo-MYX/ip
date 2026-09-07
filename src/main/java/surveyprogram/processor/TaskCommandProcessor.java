@@ -6,10 +6,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import surveyprogram.object.Deadline;
 import surveyprogram.object.Event;
 import surveyprogram.object.TaskList;
+import surveyprogram.object.TaskListResult;
 import surveyprogram.object.Todo;
 
 /**
@@ -51,157 +53,147 @@ public class TaskCommandProcessor {
      * @return dialogue and whether the application should accept another command
      */
     public CommandResult process(String input) {
-        String lowerCaseInput = input.toLowerCase();
-        if (lowerCaseInput.trim().equals("bye")) {
-            return new CommandResult("", false);
-        }
-        String response;
-        ReplyType replyType;
-        if (lowerCaseInput.trim().equals("list")) {
-            response = "VERY WELL. HERE IS YOUR LIST:\n" + taskList.read();
-            replyType = ReplyType.LIST;
-        } else if (lowerCaseInput.trim().equals("find") || lowerCaseInput.startsWith("find ")) {
-            response = taskList.find(input.substring(4).trim());
-            replyType = ReplyType.FIND;
-        } else if (lowerCaseInput.startsWith("date ")) {
-            response = handleDate(input);
-            replyType = ReplyType.DATE_QUERY;
-        } else if (lowerCaseInput.startsWith("mark ") || lowerCaseInput.startsWith("unmark ")) {
-            response = handleMark(input);
-            replyType = lowerCaseInput.startsWith("unmark ")
-                    ? ReplyType.UNMARKED
-                    : ReplyType.MARK_COMPLETED;
-        } else if (lowerCaseInput.startsWith("todo ")) {
-            response = taskList.add(new Todo(input.substring(5).trim()));
-            replyType = ReplyType.TASK_CREATED;
-        } else if (lowerCaseInput.startsWith("deadline ")) {
-            response = addDeadline(input);
-            replyType = ReplyType.TASK_CREATED;
-        } else if (lowerCaseInput.startsWith("event ")) {
-            response = addEvent(input);
-            replyType = ReplyType.TASK_CREATED;
-        } else if (lowerCaseInput.startsWith("delete ")) {
-            response = handleDelete(input);
-            replyType = ReplyType.DELETED;
-        } else {
-            response = "WELL, THAT IS NO LONGER A COMMAND.";
-            replyType = ReplyType.ERROR;
-        }
-        return new CommandResult(response, true, adjustTypeForUnsuccessfulReply(response, replyType));
+        ParsedCommand command = ParsedCommand.from(input);
+        return switch (command.name()) {
+            case "bye" -> command.hasNonBlankArguments() ? unknownCommand() : new CommandResult("", false);
+            case "list" -> command.hasNonBlankArguments() ? unknownCommand() : listTasks();
+            case "find" -> findTasks(command.arguments());
+            case "date" -> command.hasSeparator() ? handleDate(command.arguments()) : unknownCommand();
+            case "mark" -> command.hasSeparator() ? handleMark(command.arguments(), false) : unknownCommand();
+            case "unmark" -> command.hasSeparator() ? handleMark(command.arguments(), true) : unknownCommand();
+            case "todo" -> command.hasSeparator() ? addTodo(command.arguments()) : unknownCommand();
+            case "deadline" -> command.hasSeparator() ? addDeadline(command.arguments()) : unknownCommand();
+            case "event" -> command.hasSeparator() ? addEvent(command.arguments()) : unknownCommand();
+            case "delete" -> command.hasSeparator() ? handleDelete(command.arguments()) : unknownCommand();
+            default -> unknownCommand();
+        };
     }
 
-    /** Returns an empty or error style when an otherwise typed operation is unsuccessful. */
-    private ReplyType adjustTypeForUnsuccessfulReply(String response, ReplyType successfulType) {
-        if (response.contains("NOTHING TO READ")
-                || response.contains("NOTHING TO LOCATE")
-                || response.contains("NOTHING THAT CONFORMS")
-                || response.contains("NOTHING OF CONCERN")) {
-            return ReplyType.EMPTY;
-        }
-        if (response.startsWith("BUT,")
-                || response.startsWith("IT IS BARREN")
-                || response.startsWith("YOU MUST BE")) {
-            return ReplyType.ERROR;
-        }
-        return successfulType;
+    private CommandResult listTasks() {
+        TaskListResult result = taskList.read();
+        return toCommandResult(new TaskListResult(
+                "VERY WELL. HERE IS YOUR LIST:\n" + result.response(), result.status()), ReplyType.LIST);
+    }
+
+    private CommandResult findTasks(String keyword) {
+        return toCommandResult(taskList.find(keyword), ReplyType.FIND);
+    }
+
+    private CommandResult addTodo(String description) {
+        return toCommandResult(taskList.add(new Todo(description)), ReplyType.TASK_CREATED);
+    }
+
+    private CommandResult unknownCommand() {
+        return new CommandResult("WELL, THAT IS NO LONGER A COMMAND.", true, ReplyType.ERROR);
+    }
+
+    /** Returns a command result whose reply type reflects the task-list operation status. */
+    private CommandResult toCommandResult(TaskListResult result, ReplyType successfulType) {
+        ReplyType replyType = switch (result.status()) {
+            case SUCCESS -> successfulType;
+            case EMPTY -> ReplyType.EMPTY;
+            case ERROR -> ReplyType.ERROR;
+        };
+        return new CommandResult(result.response(), true, replyType);
     }
 
     /**
      * Parses a date command and prints tasks occurring on that date.
      *
-     * @param input complete date command entered by the user
+     * @param dateText date argument entered by the user
      */
-    private String handleDate(String input) {
-        String[] parts = input.split(" ", 2);
-        if (parts.length < 2) {
-            return "BUT, THERE WAS NOT A DATE TO CHECK.";
+    private CommandResult handleDate(String dateText) {
+        if (dateText.isBlank()) {
+            return new CommandResult("BUT, THERE WAS NOT A DATE TO CHECK.", true, ReplyType.ERROR);
         }
         try {
-            // parseDateTime returns LocalDateTime (time defaults to 00:00 if absent)
-            LocalDateTime dateTime = parseDateTime(parts[1].trim());
+            LocalDateTime dateTime = parseDateTime(dateText);
             LocalDate date = dateTime.toLocalDate();
-            return taskList.listByDate(date);
+            return toCommandResult(taskList.listByDate(date), ReplyType.DATE_QUERY);
         } catch (DateTimeParseException exception) {
-            return "BUT, THE DATE IS INVALID.";
+            return new CommandResult("BUT, THE DATE IS INVALID.", true, ReplyType.ERROR);
         }
     }
 
     /**
      * Parses a one-based task index and marks or unmarks the selected task.
      *
-     * @param input complete mark or unmark command entered by the user
+     * @param indexText one-based task index entered by the user
+     * @param isReverse {@code true} to unmark the task, or {@code false} to mark it
      */
-    private String handleMark(String input) {
-        String[] commandParts = input.trim().split("\\s+", 2);
-        if (commandParts.length < 2) {
-            return "BUT, THE OBJECT IS NOT SPECIFIED.";
+    private CommandResult handleMark(String indexText, boolean isReverse) {
+        if (indexText.isBlank()) {
+            return new CommandResult("BUT, THE OBJECT IS NOT SPECIFIED.", true, ReplyType.ERROR);
         }
         try {
-            int itemIndex = Integer.parseInt(commandParts[1]) - 1;
-            return taskList.mark(itemIndex, commandParts[0].equals("unmark"));
+            int itemIndex = Integer.parseInt(indexText) - 1;
+            ReplyType successfulType = isReverse ? ReplyType.UNMARKED : ReplyType.MARK_COMPLETED;
+            return toCommandResult(taskList.mark(itemIndex, isReverse), successfulType);
         } catch (NumberFormatException exception) {
-            return "BUT, IT IS INVALID.";
+            return new CommandResult("BUT, IT IS INVALID.", true, ReplyType.ERROR);
         }
     }
 
     /**
      * Parses a one-based task index and deletes the selected task.
      *
-     * @param input complete delete command entered by the user
+     * @param indexText one-based task index entered by the user
      */
-    private String handleDelete(String input) {
-        String[] commandParts = input.trim().split("\\s+", 2);
-        if (commandParts.length < 2) {
-            return "BUT, THE OBJECT IS NOT SPECIFIED.";
+    private CommandResult handleDelete(String indexText) {
+        if (indexText.isBlank()) {
+            return new CommandResult("BUT, THE OBJECT IS NOT SPECIFIED.", true, ReplyType.ERROR);
         }
         try {
-            int itemIndex = Integer.parseInt(commandParts[1]) - 1;
-            return taskList.delete(itemIndex);
+            int itemIndex = Integer.parseInt(indexText) - 1;
+            return toCommandResult(taskList.delete(itemIndex), ReplyType.DELETED);
         } catch (NumberFormatException exception) {
-            return "BUT, IT IS INVALID.";
+            return new CommandResult("BUT, IT IS INVALID.", true, ReplyType.ERROR);
         }
     }
 
     /**
      * Parses and adds a deadline, falling back to a todo when its date is invalid.
      *
-     * @param input complete deadline command entered by the user
+     * @param arguments deadline description and date arguments entered by the user
      */
-    private String addDeadline(String input) {
-        String[] parts = input.substring(9).split("(?i) /by ", 2);
+    private CommandResult addDeadline(String arguments) {
+        String[] parts = arguments.split("(?i) /by ", 2);
         if (parts.length == 2) {
             try {
                 LocalDateTime by = parseDateTime(parts[1].trim());
-                return taskList.add(new Deadline(parts[0].trim(), by));
+                return toCommandResult(taskList.add(new Deadline(parts[0].trim(), by)),
+                        ReplyType.TASK_CREATED);
             } catch (DateTimeParseException exception) {
                 // fall through to error
             }
         }
-        return mistakeWith(taskList.add(new Todo(input.substring(9).trim())));
+        return mistakeWith(taskList.add(new Todo(arguments)));
     }
 
     /**
      * Parses and adds an event, falling back to a todo when its range is invalid.
      *
-     * @param input complete event command entered by the user
+     * @param arguments event description and date-range arguments entered by the user
      */
-    private String addEvent(String input) {
-        String[] parts = input.substring(6).split("(?i) /from |(?i) /to ", 3);
+    private CommandResult addEvent(String arguments) {
+        String[] parts = arguments.split("(?i) /from |(?i) /to ", 3);
         if (parts.length == 3) {
             try {
                 LocalDateTime from = parseDateTime(parts[1].trim());
                 LocalDateTime to = parseDateTime(parts[2].trim());
-                return taskList.add(new Event(parts[0].trim(), from, to));
+                return toCommandResult(taskList.add(new Event(parts[0].trim(), from, to)),
+                        ReplyType.TASK_CREATED);
             } catch (DateTimeParseException exception) {
                 // fall through
             }
         }
-        return mistakeWith(taskList.add(new Todo(input.substring(6).trim())));
+        return mistakeWith(taskList.add(new Todo(arguments)));
     }
 
     /** Returns the dated-task error followed by its fallback result. */
-    private String mistakeWith(String fallbackResponse) {
-        return "YOU MUST BE\nMISTAKEN.\n\nHERE.\n" + fallbackResponse;
+    private CommandResult mistakeWith(TaskListResult fallbackResult) {
+        String response = "YOU MUST BE\nMISTAKEN.\n\nHERE.\n" + fallbackResult.response();
+        return new CommandResult(response, true, ReplyType.ERROR);
     }
 
     /**
@@ -227,5 +219,24 @@ public class TaskCommandProcessor {
             }
         }
         throw new DateTimeParseException("Unable to parse: " + dateTimeString, dateTimeString, 0);
+    }
+
+    /** Stores a normalized command name separately from its trimmed arguments. */
+    private record ParsedCommand(String name, String arguments, boolean hasSeparator) {
+        private static ParsedCommand from(String input) {
+            String inputWithoutLeadingSpace = input.stripLeading();
+            int separatorIndex = inputWithoutLeadingSpace.indexOf(' ');
+            if (separatorIndex < 0) {
+                return new ParsedCommand(inputWithoutLeadingSpace.toLowerCase(Locale.ROOT), "", false);
+            }
+
+            String name = inputWithoutLeadingSpace.substring(0, separatorIndex).toLowerCase(Locale.ROOT);
+            String arguments = inputWithoutLeadingSpace.substring(separatorIndex + 1).trim();
+            return new ParsedCommand(name, arguments, true);
+        }
+
+        private boolean hasNonBlankArguments() {
+            return !arguments.isEmpty();
+        }
     }
 }
